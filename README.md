@@ -6,16 +6,32 @@
 ## Hola, soy Agustín 👋
 
 Me gusta convertir ideas en **prototipos que se pueden tocar**: apps web de un solo archivo, simulaciones para probar supuestos antes de construir, y automatizaciones que me ahorran trabajo repetitivo.
-Participo en **dLab UDD**, donde trabajo en innovación y desarrollo de producto con foco en problemas reales de empresas.
+Participo en **dLab (iCubo, Universidad del Desarrollo)**, donde trabajo en innovación y desarrollo de producto con foco en problemas reales de empresas y comunidades.
 
 - 🧪 Prototipos web sin dependencias (HTML, CSS y JavaScript puro)
 - 🤖 Simulación basada en agentes y gemelos digitales
+- 📡 Prototipos de hardware e IoT (ESP32, LoRaWAN) y diseño de servicios
 - ⚙️ Automatización personal con Python, bots de Telegram y Google Apps Script *(repos privados)*
 - 📝 Documento todo: informes de pruebas, hallazgos y límites
 
-## Proyecto destacado
+## Proyectos
 
 <table>
+<tr>
+<td width="46%" valign="top">
+  <a href="https://github.com/FX010/fami-redes-que-protegen"><img src="https://raw.githubusercontent.com/FX010/fami-redes-que-protegen/main/assets/banner.svg" alt="FAMI · Redes que protegen" width="100%"></a>
+</td>
+<td valign="top">
+
+### [FAMI · Redes que Protegen](https://github.com/FX010/fami-redes-que-protegen)
+Teleasistencia comunitaria para adultos mayores: un wearable discreto con **LoRaWAN** (sin SIM ni red celular) y una app vecinal que activa a los vecinos y familiares más cercanos en los primeros minutos tras una caída. Validado en terreno en Quinta Normal con 4 ciclos de co-diseño.
+
+`LoRaWAN` · `ESP32` · `React Native` · `IoT` · `Diseño de servicio`
+
+[Repositorio](https://github.com/FX010/fami-redes-que-protegen) · Equipo Senda Zero · dLab iCubo UDD 2026
+
+</td>
+</tr>
 <tr>
 <td width="46%" valign="top">
   <a href="https://github.com/FX010/Dlab-sem-2"><img src="https://raw.githubusercontent.com/FX010/Dlab-sem-2/main/docs/img/oficina.png" alt="Rappi Hunters: Oficina" width="100%"></a>
