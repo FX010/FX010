@@ -16,36 +16,33 @@ Participo en **dLab (iCubo, Universidad del Desarrollo)**, donde trabajo en inno
 
 ## Proyectos
 
+<p align="center">
+  <a href="https://github.com/FX010/fami-redes-que-protegen"><img src="assets/card-fami.svg" alt="FAMI · Redes que protegen" width="49%"></a>
+  <a href="https://github.com/FX010/Dlab-sem-2"><img src="assets/card-rappi.svg" alt="Rappi Hunters · Prototipo y gemelo digital" width="49%"></a>
+</p>
+
 <table>
 <tr>
-<td width="46%" valign="top">
-  <a href="https://github.com/FX010/fami-redes-que-protegen"><img src="https://raw.githubusercontent.com/FX010/fami-redes-que-protegen/main/assets/banner.svg" alt="FAMI · Redes que protegen" width="100%"></a>
-</td>
-<td valign="top">
+<td width="50%" valign="top">
 
-### [FAMI · Redes que Protegen](https://github.com/FX010/fami-redes-que-protegen)
-Teleasistencia comunitaria para adultos mayores: un wearable discreto con **LoRaWAN** (sin SIM ni red celular) y una app vecinal que activa a los vecinos y familiares más cercanos en los primeros minutos tras una caída. Validado en terreno en Quinta Normal con 4 ciclos de co-diseño.
+**FAMI · Redes que Protegen**
 
-`LoRaWAN` · `ESP32` · `React Native` · `IoT` · `Diseño de servicio`
+- **Problema:** una caída sin ayuda por más de 1 hora duplica la mortalidad de un adulto mayor, y en una emergencia masiva las redes celulares colapsan.
+- **Solución:** un wearable discreto (pulsera, llavero o pin) con LoRaWAN, sin SIM, y una app que avisa primero a los vecinos y familiares más cercanos.
+- **Validación:** 4 ciclos de co-diseño en Quinta Normal; el 89 % de los encuestados lo calificó útil o muy útil.
 
-[Repositorio](https://github.com/FX010/fami-redes-que-protegen) · Equipo Senda Zero · dLab iCubo UDD 2026
+[Ver proyecto →](https://github.com/FX010/fami-redes-que-protegen)
 
 </td>
-</tr>
-<tr>
-<td width="46%" valign="top">
-  <a href="https://github.com/FX010/Dlab-sem-2"><img src="https://raw.githubusercontent.com/FX010/Dlab-sem-2/main/docs/img/oficina.png" alt="Rappi Hunters: Oficina" width="100%"></a>
-</td>
-<td valign="top">
+<td width="50%" valign="top">
 
-### [Rappi Hunters](https://github.com/FX010/Dlab-sem-2)
-Programa donde los repartidores reportan locales que aún no están en Rappi **mientras esperan** un pedido. Incluye app del repartidor, Oficina de gestión y un **gemelo digital** que simula si las reglas aguantan a escala.
+**Rappi Hunters**
 
-**Lo más interesante:** el modelo mostró que el cuello de botella es la oficina, no el repartidor.
+- **Problema:** hay locales que aún no están en Rappi, y los repartidores tienen tiempos de espera sin aprovechar.
+- **Solución:** un Modo Hunter para reportar locales (bloqueado con un pedido en curso), una Oficina que los gestiona y un gemelo digital que prueba las reglas antes de lanzarlas.
+- **Hallazgo:** el cuello de botella es la oficina, no el repartidor.
 
-`JavaScript` · `HTML/CSS` · `Simulación de agentes`
-
-[▶ Demo](https://fx010.github.io/Dlab-sem-2/) · [Repositorio](https://github.com/FX010/Dlab-sem-2) · [Informe de pruebas](https://github.com/FX010/Dlab-sem-2/blob/main/docs/Informe_Pruebas.md)
+[▶ Demo](https://fx010.github.io/Dlab-sem-2/) · [Repositorio](https://github.com/FX010/Dlab-sem-2) · [Informe](https://github.com/FX010/Dlab-sem-2/blob/main/docs/Informe_Pruebas.md)
 
 </td>
 </tr>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 340" width="560" height="340" role="img" aria-label="FAMI · Redes que protegen">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2f0e3"/><stop offset="1" stop-color="#e1d7c8"/></linearGradient>
+<clipPath id="c"><rect width="560" height="340" rx="20"/></clipPath></defs>
+<rect width="560" height="340" rx="20" fill="url(#g)"/>
+<g clip-path="url(#c)"><circle cx="490" cy="80" r="32" fill="none" stroke="#516472" stroke-opacity="0.5" stroke-width="2.0"/><circle cx="490" cy="80" r="64" fill="none" stroke="#516472" stroke-opacity="0.36" stroke-width="2.0"/><circle cx="490" cy="80" r="96" fill="none" stroke="#516472" stroke-opacity="0.25" stroke-width="2.0"/><circle cx="490" cy="80" r="128" fill="none" stroke="#516472" stroke-opacity="0.16" stroke-width="2.0"/><circle cx="520.1" cy="90.9" r="4.8" fill="#89674b"/><circle cx="441.0" cy="121.1" r="4.8" fill="#89674b"/><circle cx="468.1" cy="19.9" r="4.8" fill="#89674b"/><circle cx="514.8" cy="172.7" r="4.8" fill="#89674b"/><circle cx="403.0" cy="39.4" r="4.8" fill="#89674b"/><circle cx="600.9" cy="16.0" r="4.8" fill="#89674b"/><circle cx="456.9" cy="203.6" r="4.8" fill="#89674b"/><circle cx="490" cy="80" r="14" fill="#516472"/><circle cx="490" cy="80" r="6" fill="#f2f0e3"/></g>
+<text x="36" y="50" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.0" font-weight="700" letter-spacing="2.4" fill="#89674b">SENDA ZERO · DLAB ICUBO UDD 2026</text>
+<text x="34" y="116" font-family="Fredoka, Nunito, Segoe UI, Helvetica, Arial, sans-serif" font-size="66" font-weight="700" fill="#516472">FAMI</text>
+<text x="36" y="148" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="19.0" font-weight="600" fill="#89674b">Redes que protegen</text>
+<text x="36" y="184" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15.5" fill="#5c6a74">Teleasistencia comunitaria para adultos mayores:</text>
+<text x="36" y="207" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15.5" fill="#5c6a74">wearable LoRaWAN sin SIM + app vecinal.</text>
+<rect x="36" y="236" width="155" height="62" rx="10" fill="#fbfaf3"/>
+<text x="50" y="266" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#516472">89%</text>
+<text x="50" y="286" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.0" fill="#5c6a74">utilidad percibida</text>
+<rect x="203" y="236" width="155" height="62" rx="10" fill="#fbfaf3"/>
+<text x="217" y="266" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#516472">17.144</text>
+<text x="217" y="286" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.0" fill="#5c6a74">mayores en Quinta Normal</text>
+<rect x="369" y="236" width="155" height="62" rx="10" fill="#fbfaf3"/>
+<text x="383" y="266" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#516472">915 MHz</text>
+<text x="383" y="286" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11.0" fill="#5c6a74">LoRaWAN, sin SIM</text>
+<text x="36" y="318" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="12.5" fill="#5c6a74">LoRaWAN · ESP32 · React Native · IoT</text>
+</svg>
