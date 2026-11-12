@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t d">
+<title id="t">Agustín Bravo</title><desc id="d">Prototipos, simulación y automatización</desc>
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fb3a1"/><stop offset=".55" stop-color="#b6cbae"/><stop offset="1" stop-color="#d9d0ae"/></linearGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8fb3a1" stop-opacity="1"/><stop offset=".5" stop-color="#8fb3a1" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="1200" height="300" rx="18" fill="url(#bg)"/>
+<g stroke="#fffbf5" stroke-opacity=".38" stroke-width="5" stroke-linecap="round"><line x1="640" y1="0" x2="600" y2="300"/><line x1="718" y1="0" x2="678" y2="300"/><line x1="780" y1="0" x2="740" y2="300"/><line x1="858" y1="0" x2="818" y2="300"/><line x1="920" y1="0" x2="880" y2="300"/><line x1="998" y1="0" x2="958" y2="300"/><line x1="1060" y1="0" x2="1020" y2="300"/><line x1="1138" y1="0" x2="1098" y2="300"/><line x1="600" y1="40" x2="1200" y2="22"/><line x1="600" y1="105" x2="1200" y2="87"/><line x1="600" y1="170" x2="1200" y2="152"/><line x1="600" y1="235" x2="1200" y2="217"/></g>
+<path d="M640 285 C 760 250, 800 190, 880 170 S 1010 120, 1090 70" fill="none" stroke="#9c3a1f" stroke-width="5" stroke-dasharray="2 12" stroke-linecap="round"/>
+<circle cx="1090" cy="70" r="12" fill="#9c3a1f"/><circle cx="1090" cy="70" r="5" fill="#fffbf5"/>
+<circle cx="880" cy="170" r="6" fill="#9c3a1f" fill-opacity=".7"/>
+<rect width="1200" height="300" rx="18" fill="url(#fade)" opacity=".85"/>
+<text x="64" y="92" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="3.5" fill="#9c3a1f">FX010 · CHILE</text>
+<text x="62" y="170" font-family="Fraunces, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-size="68" font-weight="600" fill="#26211d">Agustín Bravo</text>
+<text x="64" y="218" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#4d453d">Prototipos · simulación · automatización</text>
+<rect x="64" y="244" width="64" height="4" rx="2" fill="#9c3a1f"/>
+</svg>
