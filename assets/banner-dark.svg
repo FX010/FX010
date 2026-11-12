@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300" role="img" aria-labelledby="t d">
-<title id="t">Agustín Bravo</title><desc id="d">Prototipos, simulación y automatización</desc>
+<title id="t">Agustín Bravo Sepúlveda</title><desc id="d">Prototipos, simulación y automatización</desc>
 <defs>
 <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14211c"/><stop offset=".55" stop-color="#1f2a22"/><stop offset="1" stop-color="#2a2320"/></linearGradient>
 <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#14211c" stop-opacity="1"/><stop offset=".5" stop-color="#14211c" stop-opacity="0"/></linearGradient>
@@ -10,8 +10,8 @@
 <circle cx="1090" cy="70" r="12" fill="#e58a4e"/><circle cx="1090" cy="70" r="5" fill="#14211c"/>
 <circle cx="880" cy="170" r="6" fill="#e58a4e" fill-opacity=".7"/>
 <rect width="1200" height="300" rx="18" fill="url(#fade)" opacity=".85"/>
-<text x="64" y="92" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="3.5" fill="#e58a4e">FX010 · CHILE</text>
-<text x="62" y="170" font-family="Fraunces, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-size="68" font-weight="600" fill="#f2ebe3">Agustín Bravo</text>
-<text x="64" y="218" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#b3a69a">Prototipos · simulación · automatización</text>
+<text x="64" y="92" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="3.5" fill="#e58a4e">INGENIERÍA CIVIL INDUSTRIAL · UDD</text>
+<text x="62" y="170" font-family="Fraunces, 'Iowan Old Style', Georgia, 'Times New Roman', serif" font-size="56" font-weight="600" fill="#f2ebe3">Agustín Bravo Sepúlveda</text>
+<text x="64" y="218" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#b3a69a">Procesos · datos · simulación · prototipos</text>
 <rect x="64" y="244" width="64" height="4" rx="2" fill="#e58a4e"/>
 </svg>
