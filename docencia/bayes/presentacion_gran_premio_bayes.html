@@ -1,0 +1,352 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gran Premio Bayes</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,400;0,600;0,700;0,900;1,600;1,700&display=swap">
+<style>:root {
+  --ink: #15151E;
+  --panel: #22222E;
+  --paper: #F2F1EC;
+  --row: #FBFAF6;
+  --red: #D11A1A;
+  --redhi: #FF4636;
+  --yellow: #FFC23D;
+  --soft: #D6D5DE;
+  --mute-d: #A9A9B8;
+  --mute-l: #55556A;
+}
+
+section {
+  counter-increment: page;
+  font-family: 'Titillium Web', Arial, sans-serif;
+  box-sizing: border-box;
+  padding: 128px 128px 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.dark { background: var(--ink); color: var(--paper); }
+.light { background: var(--paper); color: var(--ink); }
+.flag { background: var(--red); color: var(--paper); }
+
+/* Decoración de pista */
+.topline { position: absolute; left: 0; top: 0; width: 1920px; height: 10px; background: var(--red); }
+.bar { position: absolute; top: 40px; width: 34px; height: 52px; transform: skewX(-20deg); }
+.bar.b1 { left: 1676px; background: var(--red); }
+.bar.b2 { left: 1722px; background: var(--yellow); }
+.dark .bar.b3 { left: 1768px; background: var(--paper); }
+.light .bar.b3 { left: 1768px; background: var(--ink); }
+.checker { position: absolute; left: 0; top: 1032px; width: 1920px; height: 48px; }
+
+/* Encabezado de vuelta */
+.lap { display: flex; gap: 20px; align-items: center; }
+.chip {
+  font-size: 24px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase;
+  padding: 6px 20px; background: var(--red); color: var(--paper); transform: skewX(-12deg);
+}
+.chip.y { background: var(--yellow); color: var(--ink); }
+.tag { font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; }
+.dark .tag { color: var(--mute-d); }
+.light .tag { color: var(--mute-l); }
+
+.title {
+  font-size: 64px; font-weight: 700; font-style: italic; line-height: 1.05;
+  text-transform: uppercase; letter-spacing: -0.5px;
+}
+.lead { font-size: 28px; line-height: 1.4; max-width: 1400px; }
+.dark .lead { color: var(--soft); }
+.light .lead { color: var(--mute-l); }
+
+/* Tarjetas de telemetría */
+.tele { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.card {
+  background: var(--panel); border-top: 6px solid var(--red);
+  padding: 32px 36px; display: flex; flex-direction: column; gap: 10px;
+  animation: rise 520ms cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--i) * 110ms);
+}
+.card.s2 { border-top: 6px solid var(--yellow); }
+.card.s3 { border-top: 6px solid var(--paper); }
+.card.alert { background: var(--red); border-top: 6px solid var(--yellow); }
+.card .lbl { font-size: 24px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); }
+.card .big { font-size: 96px; font-weight: 700; font-style: italic; line-height: 1; color: var(--paper); font-variant-numeric: tabular-nums; }
+.card .desc { font-size: 28px; line-height: 1.3; color: var(--soft); }
+.card .sub { font-size: 28px; font-weight: 700; line-height: 1.3; color: var(--paper); }
+.card.alert .lbl { color: var(--paper); }
+.card.alert .desc { color: var(--paper); }
+.card hr { border-top: 2px solid #3A3A4C; }
+
+/* Tablas tipo torre de tiempos */
+.tower { font-size: 28px; color: var(--paper); width: 100%; font-variant-numeric: tabular-nums; }
+.tower .hd { background: var(--red); }
+.tower .r1 { background: var(--panel); }
+.tower .r2 { background: #1B1B26; }
+
+.split { display: grid; grid-template-columns: 1.55fr 1fr; gap: 40px; align-items: start; }
+.note {
+  background: var(--panel); border-left: 10px solid var(--yellow);
+  padding: 28px 32px; display: flex; flex-direction: column; gap: 12px;
+  animation: rise 520ms cubic-bezier(.2,.7,.2,1) both; animation-delay: 300ms;
+}
+.note .lbl { font-size: 24px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--yellow); }
+.note .txt { font-size: 28px; line-height: 1.35; color: var(--paper); }
+
+.pills { display: flex; gap: 20px; }
+.pill { font-size: 24px; font-weight: 600; letter-spacing: 1px; padding: 10px 22px; background: var(--panel); color: var(--soft); border-left: 6px solid var(--red); }
+
+/* Filas de preguntas */
+.qs { display: flex; flex-direction: column; gap: 12px; }
+.q {
+  display: grid; grid-template-columns: 64px 1fr 110px; gap: 28px; align-items: center;
+  background: var(--row); border-left: 8px solid var(--red); padding: 14px 28px 14px 20px;
+  animation: slide 480ms cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--i) * 90ms);
+}
+.q .l {
+  font-size: 30px; font-weight: 900; font-style: normal; text-align: center;
+  background: var(--ink); color: var(--paper); height: 56px; line-height: 56px;
+}
+.q .t { font-size: 28px; line-height: 1.3; color: var(--ink); }
+.q .p { font-size: 24px; font-weight: 700; letter-spacing: 2px; text-align: right; color: var(--red); }
+
+/* Parrilla */
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px 56px; }
+.slot {
+  background: var(--row); border-left: 10px solid var(--red);
+  padding: 28px 36px; display: flex; gap: 32px; align-items: center;
+  animation: rise 520ms cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--i) * 120ms);
+}
+.slot.lo { margin-top: 64px; }
+.slot .pos { font-size: 96px; font-weight: 700; font-style: italic; line-height: 1; color: var(--red); }
+.slot .info { display: flex; flex-direction: column; gap: 6px; }
+.slot .nm { font-size: 28px; font-weight: 700; line-height: 1.25; text-transform: uppercase; color: var(--ink); }
+.slot .ds { font-size: 24px; line-height: 1.3; color: var(--mute-l); }
+.slot .pt { font-size: 24px; font-weight: 700; letter-spacing: 2px; color: var(--red); }
+
+/* Portada */
+.cover { justify-content: center; gap: 28px; }
+.slab { position: absolute; left: 1290px; top: 0; width: 820px; height: 1080px; background: var(--red); transform: skewX(-12deg); }
+.racenum { position: absolute; left: 1330px; top: 400px; width: 520px; font-size: 120px; font-weight: 700; font-style: italic; line-height: 1; text-align: center; color: var(--paper); }
+.racecap { position: absolute; left: 1330px; top: 540px; width: 520px; font-size: 24px; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; text-align: center; color: var(--paper); }
+.hero { font-size: 150px; font-weight: 700; font-style: italic; line-height: 0.95; text-transform: uppercase; letter-spacing: -2px; max-width: 1050px; }
+.hero .hl { color: var(--redhi); }
+.cover .lead { max-width: 980px; }
+.meta { font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--mute-d); }
+
+/* Cierre */
+.finale { justify-content: center; gap: 36px; }
+.finale .title { font-size: 120px; }
+.steps { display: flex; gap: 20px; align-items: center; }
+.step {
+  font-size: 28px; font-weight: 700; line-height: 1.3; padding: 22px 28px;
+  background: var(--ink); color: var(--paper); border-top: 6px solid var(--yellow);
+  animation: rise 520ms cubic-bezier(.2,.7,.2,1) both;
+  animation-delay: calc(var(--i) * 140ms);
+}
+.arrow { width: 56px; height: 28px; background: var(--paper); }
+.finale .lead { color: var(--paper); }
+.checker.top { top: 0; }
+
+/* Pie */
+.foot {
+  position: absolute; left: 128px; bottom: 64px; width: 1664px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.foot .fl { font-size: 24px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; }
+.foot .pg { font-size: 24px; font-weight: 700; letter-spacing: 3px; }
+
+.dark .foot .fl, .dark .foot .pg { color: var(--mute-d); }
+.light .foot .fl, .light .foot .pg { color: var(--mute-l); }
+
+@keyframes rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slide { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: translateX(0); } }
+
+
+html,body{margin:0;background:#0b0b10;}
+section{position:relative;width:1920px;height:1080px;overflow:hidden;margin:0;}
+p,h1,h2,h3,table{margin:0}
+hr{margin:0;border:0}
+table{border-collapse:collapse}
+th,td{padding:.35em .6em;border-bottom:1px solid rgba(255,255,255,.12)}
+x-shape.arrow{display:block;flex:none;clip-path:polygon(0 30%,60% 30%,60% 0,100% 50%,60% 100%,60% 70%,0 70%)}
+@media screen{
+ body{display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+ #stage{width:1920px;height:1080px;transform-origin:center center;position:relative}
+ #stage section{display:none;position:absolute;left:0;top:0}
+ #stage section.on{display:flex}
+}
+@media print{
+ @page{size:1920px 1080px;margin:0}
+ #stage section{display:flex;page-break-after:always;break-after:page}
+ *{animation:none !important}
+}
+</style></head><body><div id="stage"><section id="cover" class="dark cover" data-transition="push">
+<div class="slab"></div>
+<div class="topline"></div>
+<p class="racenum">P(A|B)</p>
+<p class="racecap">Probabilidad a posteriori</p>
+<div class="lap"><p class="chip">Ayudantía</p><p class="tag">Estadística · Teorema de Bayes</p></div>
+<h1 class="hero">Gran Premio <span class="hl">Bayes</span></h1>
+<p class="lead">Cuatro vueltas para dominar la revisión de probabilidades: de la probabilidad a priori a la a posteriori.</p>
+<p class="meta">4 ejercicios · 76 puntos · Ref. Lind, Marchal y Wathen, sección 5.7</p>
+<svg class="checker" aria-label="Franja de bandera a cuadros" width="1920" height="48" viewBox="0 0 1920 48" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="ckc" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#F2F1EC"/><rect width="24" height="24" fill="#15151E"/><rect x="24" y="24" width="24" height="24" fill="#15151E"/></pattern></defs><rect width="1920" height="48" fill="url(#ckc)"/></svg>
+
+</section>
+<section id="parrilla" class="light">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Parrilla de salida</p><p class="tag">4 vueltas · 76 puntos</p></div>
+<h2 class="title">Cuatro vueltas, de menor a mayor exigencia</h2>
+<div class="grid">
+<div class="slot" style="--i:0"><p class="pos">P1</p><div class="info"><h3 class="nm">Alertas de fraude</h3><p class="ds">Dos eventos y una prueba imperfecta</p><p class="pt">16 PTS</p></div></div>
+<div class="slot lo" style="--i:1"><p class="pos">P2</p><div class="info"><h3 class="nm">¿Qué courier se atrasó?</h3><p class="ds">Tres eventos, árbol y tabla de Bayes</p><p class="pt">18 PTS</p></div></div>
+<div class="slot" style="--i:2"><p class="pos">P3</p><div class="info"><h3 class="nm">Inspección de una máquina</h3><p class="ds">Actualización secuencial de la probabilidad</p><p class="pt">18 PTS</p></div></div>
+<div class="slot lo" style="--i:3"><p class="pos">P4</p><div class="info"><h3 class="nm">Estudio de mercado</h3><p class="ds">Bayes aplicado a una decisión con valor esperado</p><p class="pt">24 PTS</p></div></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">02 / 11</p></div>
+
+</section>
+<section id="e1" class="dark">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 1 / 4</p><p class="tag">16 puntos · Desarrollo</p></div>
+<h2 class="title">Alertas de fraude en una billetera digital</h2>
+<p class="lead">Una fintech chilena procesa pagos con su billetera digital y usa un sistema automático de alertas para detectar fraude. Se selecciona al azar una transacción.</p>
+<div class="tele">
+<div class="card" style="--i:0"><p class="lbl">Fraude</p><p class="big">2%</p><p class="desc">de las transacciones son fraudulentas</p></div>
+<div class="card s2" style="--i:1"><p class="lbl">Detección</p><p class="big">95%</p><p class="desc">de los fraudes generan una alerta</p></div>
+<div class="card s3" style="--i:2"><p class="lbl">Falso positivo</p><p class="big">4%</p><p class="desc">de las transacciones legítimas también generan alerta</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">03 / 11</p></div>
+
+</section>
+<section id="e1q" class="light">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 1 / 4</p><p class="tag">Alertas de fraude · Preguntas</p></div>
+<h2 class="title">Ejercicio 1 · Preguntas</h2>
+<div class="qs">
+<div class="q" style="--i:0"><p class="l">a</p><p class="t">Defina los eventos y escriba los datos con notación de probabilidad. ¿Cuál es la a priori y cuáles las condicionales?</p><p class="p">3 PTS</p></div>
+<div class="q" style="--i:1"><p class="l">b</p><p class="t">Construya el diagrama de árbol y calcule la probabilidad de que el sistema emita una alerta.</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:2"><p class="l">c</p><p class="t">Hubo alerta: ¿cuál es la probabilidad de que la transacción sea realmente fraudulenta? Resuma en una tabla de Bayes.</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:3"><p class="l">d</p><p class="t">No hubo alerta: ¿cuál es la probabilidad de que la transacción sea fraudulenta igualmente?</p><p class="p">2 PTS</p></div>
+<div class="q" style="--i:4"><p class="l">e</p><p class="t">Si los falsos positivos bajan de 4% a 1% (detección en 95%), recalcule c) y explique por qué el efecto es tan grande.</p><p class="p">3 PTS</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">04 / 11</p></div>
+
+</section>
+<section id="e2" class="dark">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 2 / 4</p><p class="tag">18 puntos · Desarrollo</p></div>
+<h2 class="title">¿Qué courier se atrasó?</h2>
+<p class="lead">Una tienda online de artículos deportivos despacha sus pedidos con tres couriers. Servicio al cliente no sabe de inmediato qué courier transportó cada paquete.</p>
+<div class="split">
+<table class="tower">
+<tr class="hd"><th style="width:40%;text-align:left">Courier</th><th style="width:30%;text-align:right">Pedidos despachados</th><th style="width:30%;text-align:right">Llegan con retraso</th></tr>
+<tr class="r1"><td>RápidoSur</td><td style="text-align:right">45%</td><td style="text-align:right">8%</td></tr>
+<tr class="r2"><td>EnvíaYa</td><td style="text-align:right">35%</td><td style="text-align:right">12%</td></tr>
+<tr class="r1"><td>CargoNorte</td><td style="text-align:right">20%</td><td style="text-align:right">5%</td></tr>
+</table>
+<div class="note"><p class="lbl">El reclamo</p><p class="txt">Un cliente reclama porque su pedido llegó con retraso. ¿Qué courier lo transportó?</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">05 / 11</p></div>
+
+</section>
+<section id="e2q" class="light">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 2 / 4</p><p class="tag">Couriers y retrasos · Preguntas</p></div>
+<h2 class="title">Ejercicio 2 · Preguntas</h2>
+<div class="qs">
+<div class="q" style="--i:0"><p class="l">a</p><p class="t">Defina A1, A2, A3 y B (retraso). ¿Por qué cumplen las condiciones para aplicar Bayes?</p><p class="p">2 PTS</p></div>
+<div class="q" style="--i:1"><p class="l">b</p><p class="t">Construya el árbol completo (incluya “llega a tiempo”) con todas las conjuntas y verifique que suman 1.</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:2"><p class="l">c</p><p class="t">Calcule la probabilidad de que un pedido cualquiera llegue con retraso.</p><p class="p">2 PTS</p></div>
+<div class="q" style="--i:3"><p class="l">d</p><p class="t">Dado un retraso, calcule la probabilidad a posteriori de cada courier en una tabla de Bayes.</p><p class="p">5 PTS</p></div>
+<div class="q" style="--i:4"><p class="l">e</p><p class="t">Otro pedido llegó a tiempo. ¿Cuál es la probabilidad de que lo haya transportado CargoNorte?</p><p class="p">2 PTS</p></div>
+<div class="q" style="--i:5"><p class="l">f</p><p class="t">“EnvíaYa despacha solo un tercio de los pedidos, así que no puede ser el principal responsable de los retrasos.” Evalúe la afirmación.</p><p class="p">3 PTS</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">06 / 11</p></div>
+
+</section>
+<section id="e3" class="dark">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 3 / 4</p><p class="tag">18 puntos · Desarrollo</p></div>
+<h2 class="title">Inspección secuencial de una máquina</h2>
+<p class="lead">Una inyectora de envases plásticos puede estar ajustada o desajustada al inicio del turno. Dado el estado, los envases salen defectuosos de forma independiente.</p>
+<div class="tele">
+<div class="card s3" style="--i:0"><p class="lbl">Ajustada</p><p class="big">0,90</p><p class="desc">probabilidad al inicio del turno</p><hr><p class="sub">P(defectuoso) = 0,02</p></div>
+<div class="card s2" style="--i:1"><p class="lbl">Desajustada</p><p class="big">0,10</p><p class="desc">probabilidad al inicio del turno</p><hr><p class="sub">P(defectuoso) = 0,20</p></div>
+<div class="card alert" style="--i:2"><p class="lbl">Bandera roja</p><p class="big">&gt; 0,80</p><p class="desc">Se detiene la máquina para recalibrar si P(desajustada) supera este umbral.</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">07 / 11</p></div>
+
+</section>
+<section id="e3q" class="light">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 3 / 4</p><p class="tag">Inspección de una máquina · Preguntas</p></div>
+<h2 class="title">Ejercicio 3 · Preguntas</h2>
+<div class="qs">
+<div class="q" style="--i:0"><p class="l">a</p><p class="t">El primer envase inspeccionado es defectuoso. Calcule P(desajustada). ¿Se detiene la máquina según la política?</p><p class="p">5 PTS</p></div>
+<div class="q" style="--i:1"><p class="l">b</p><p class="t">Con el resultado de a) como nueva a priori, el segundo envase también es defectuoso. Actualice la probabilidad. ¿Se detiene ahora?</p><p class="p">5 PTS</p></div>
+<div class="q" style="--i:2"><p class="l">c</p><p class="t">Verifique b) en un solo paso: calcule P(desajustada | 2 defectuosos de 2) con las probabilidades a priori originales.</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:3"><p class="l">d</p><p class="t">Si el primer envase fue defectuoso y el segundo no, ¿cuál es P(desajustada)? Interprete cómo cambia la creencia con cada observación.</p><p class="p">4 PTS</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">08 / 11</p></div>
+
+</section>
+<section id="e4" class="dark">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 4 / 4</p><p class="tag">24 puntos · Desarrollo</p></div>
+<h2 class="title">¿Vale la pena el estudio de mercado?</h2>
+<p class="lead">Una empresa de alimentos evalúa lanzar una bebida isotónica. Una consultora ofrece un estudio de mercado cuyo resultado puede ser favorable (F) o desfavorable (D).</p>
+<table class="tower">
+<tr class="hd"><th style="width:28%;text-align:left">Demanda</th><th style="width:22%;text-align:right">P a priori</th><th style="width:28%;text-align:right">Utilidad si se lanza</th><th style="width:22%;text-align:right">P(F | demanda)</th></tr>
+<tr class="r1"><td>Alta (A1)</td><td style="text-align:right">0,25</td><td style="text-align:right">MM$ 500</td><td style="text-align:right">0,85</td></tr>
+<tr class="r2"><td>Media (A2)</td><td style="text-align:right">0,45</td><td style="text-align:right">MM$ 120</td><td style="text-align:right">0,50</td></tr>
+<tr class="r1"><td>Baja (A3)</td><td style="text-align:right">0,30</td><td style="text-align:right">MM$ −300</td><td style="text-align:right">0,10</td></tr>
+</table>
+<div class="pills"><p class="pill">Si no se lanza: utilidad 0</p><p class="pill">Costo del estudio: MM$ 20</p><p class="pill">Cifras en millones de pesos</p></div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">09 / 11</p></div>
+
+</section>
+<section id="e4q" class="light">
+<div class="topline"></div>
+<div class="bar b1"></div><div class="bar b2"></div><div class="bar b3"></div>
+<div class="lap"><p class="chip">Vuelta 4 / 4</p><p class="tag">Estudio de mercado · Preguntas</p></div>
+<h2 class="title">Ejercicio 4 · Preguntas</h2>
+<div class="qs">
+<div class="q" style="--i:0"><p class="l">a</p><p class="t">Sin estudio: calcule la utilidad esperada de lanzar el producto. ¿Qué decisión conviene?</p><p class="p">3 PTS</p></div>
+<div class="q" style="--i:1"><p class="l">b</p><p class="t">Calcule la probabilidad de que el estudio resulte favorable y la de que resulte desfavorable.</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:2"><p class="l">c</p><p class="t">Calcule las probabilidades a posteriori de cada nivel de demanda si el estudio es F y si es D (dos tablas de Bayes).</p><p class="p">8 PTS</p></div>
+<div class="q" style="--i:3"><p class="l">d</p><p class="t">Con las a posteriori, calcule la utilidad esperada de lanzar en cada caso. ¿Qué decide la empresa según el resultado?</p><p class="p">4 PTS</p></div>
+<div class="q" style="--i:4"><p class="l">e</p><p class="t">Utilidad esperada de “contratar el estudio y decidir según su resultado”. Si cuesta MM$ 20, ¿conviene? ¿Cuál es el máximo a pagar?</p><p class="p">5 PTS</p></div>
+</div>
+<div class="foot"><p class="fl">Gran Premio Bayes · Ayudantía</p><p class="pg">10 / 11</p></div>
+
+</section>
+<section id="meta" class="flag finale">
+<svg class="checker top" aria-label="Franja de bandera a cuadros" width="1920" height="48" viewBox="0 0 1920 48" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="ckm" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#F2F1EC"/><rect width="24" height="24" fill="#15151E"/><rect x="24" y="24" width="24" height="24" fill="#15151E"/></pattern></defs><rect width="1920" height="48" fill="url(#ckm)"/></svg>
+<div class="lap"><p class="chip y">Meta</p></div>
+<h2 class="title">Bandera a cuadros</h2>
+<p class="lead">La misma estrategia de carrera sirve para las cuatro vueltas:</p>
+<div class="steps">
+<p class="step" style="--i:0">A priori × condicional = conjunta</p>
+<x-shape kind="arrow-right" class="arrow"></x-shape>
+<p class="step" style="--i:1">Conjunta ÷ total = a posteriori</p>
+<x-shape kind="arrow-right" class="arrow"></x-shape>
+<p class="step" style="--i:2">Las a posteriori suman 1</p>
+</div>
+<svg class="checker" aria-label="Franja de bandera a cuadros" width="1920" height="48" viewBox="0 0 1920 48" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="ckm2" width="48" height="48" patternUnits="userSpaceOnUse"><rect width="48" height="48" fill="#F2F1EC"/><rect width="24" height="24" fill="#15151E"/><rect x="24" y="24" width="24" height="24" fill="#15151E"/></pattern></defs><rect width="1920" height="48" fill="url(#ckm2)"/></svg>
+
+</section>
+</div><script>
+const s=[...document.querySelectorAll('#stage section')];let i=0;
+function show(n){i=Math.max(0,Math.min(s.length-1,n));s.forEach((x,k)=>x.classList.toggle('on',k===i));location.hash=i+1;}
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);document.getElementById('stage').style.transform='scale('+k+')';}
+addEventListener('resize',fit);fit();
+addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' ','Enter'].includes(e.key))show(i+1);if(['ArrowLeft','PageUp','Backspace'].includes(e.key))show(i-1);if(e.key==='f')document.documentElement.requestFullscreen();});
+addEventListener('click',e=>show(e.clientX>innerWidth/3?i+1:i-1));
+show((parseInt(location.hash.slice(1))||1)-1);
+</script></body></html>
