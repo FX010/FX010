@@ -1,0 +1,1486 @@
+<title>Laboratorio Neuronal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Laboratorio Neuronal: composición. Barra superior fija, navegación de lecciones a la izquierda,
+   lección en el centro y consola acoplada abajo. Un solo acento (cobalto) y ámbar como contraste. */
+:root {
+  --bg: #F3F5FB; --surface: #FFFFFF; --surface2: #E8ECF7; --ink: #131A33; --muted: #5B6585; --line: #D6DCEC;
+  --accent: #3256F0; --accent-ink: #FFFFFF; --accent-soft: #E3E9FF; --amber: #A55F00; --good: #0B8A5F; --good-soft: #DDF4EA; --bad: #C93A55; --bad-soft: #FBE3E8;
+  --code-bg: #101831; --code-ink: #E6EBFA; --code-muted: #7D89B3; --code-kw: #8FB0FF; --code-str: #9BE0B8; --code-num: #FFC370; --code-fn: #C8A8FF; --code-line: #25305A;
+  --c1: #3256F0; --c2: #D98200; --c3: #0B8A5F; --c4: #C93A55;
+  --shadow: 0 1px 2px rgba(19,26,51,.06), 0 6px 20px rgba(19,26,51,.06);
+  --font-head: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --topbar-h: 56px; --dock-h: 0px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1122; --surface: #131B33; --surface2: #1B2547; --ink: #E7ECFB; --muted: #9AA6CB; --line: #27325A;
+    --accent: #7C98FF; --accent-ink: #0B1122; --accent-soft: #1F2C5E; --amber: #FFB649; --good: #44D7A5; --good-soft: #12342F; --bad: #FF7A90; --bad-soft: #3A1B28;
+    --code-bg: #0A0F20; --code-line: #1E2748;
+    --c1: #7C98FF; --c2: #FFB649; --c3: #44D7A5; --c4: #FF7A90; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1122; --surface: #131B33; --surface2: #1B2547; --ink: #E7ECFB; --muted: #9AA6CB; --line: #27325A;
+  --accent: #7C98FF; --accent-ink: #0B1122; --accent-soft: #1F2C5E; --amber: #FFB649; --good: #44D7A5; --good-soft: #12342F; --bad: #FF7A90; --bad-soft: #3A1B28;
+  --code-bg: #0A0F20; --code-line: #1E2748;
+  --c1: #7C98FF; --c2: #FFB649; --c3: #44D7A5; --c4: #FF7A90; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.6 var(--font-body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--surface); }
+h1, h2, h3 { font-family: var(--font-head); line-height: 1.2; text-wrap: balance; margin: 0; }
+p { margin: 0 0 .8em; }
+code { font-family: var(--font-mono); font-size: .88em; background: var(--surface2); padding: .1em .4em; border-radius: 5px; }
+button, select, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* ---------- barra superior ---------- */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar-in { height: var(--topbar-h); display: flex; align-items: center; gap: 14px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.brand { display: flex; align-items: center; gap: 10px; font: 700 17px var(--font-head); text-decoration: none; color: var(--ink); white-space: nowrap; }
+.brand svg { width: 26px; height: 26px; flex: none; }
+.progress { flex: 1; display: flex; align-items: center; gap: 12px; min-width: 0; justify-content: center; }
+.progress .bar { width: min(260px, 100%); height: 8px; border-radius: 99px; background: var(--surface2); overflow: hidden; }
+.progress .bar i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+.progress span { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 7px 14px; font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; transition: background .15s, border-color .15s; }
+.btn:hover { background: var(--surface2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
+.btn.good { background: var(--good); border-color: var(--good); color: #fff; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.small { padding: 4px 10px; font-size: 13px; border-radius: 8px; }
+.icon-btn { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; }
+.icon-btn:hover { background: var(--surface2); }
+.icon-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.only-narrow { display: none; }
+
+/* ---------- estructura ---------- */
+.shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); align-items: start; }
+.sidebar { position: sticky; top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px)); height: calc(100vh - var(--topbar-h) - env(safe-area-inset-top, 0px)); overflow: auto; padding: 20px 16px calc(28px + var(--dock-h)) max(16px, env(safe-area-inset-left, 0px)); border-right: 1px solid var(--line); background: var(--surface); }
+.sidebar h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px 6px; font-family: var(--font-body); font-weight: 700; }
+.lesson-list { list-style: none; margin: 0 0 22px; padding: 0; display: grid; gap: 4px; }
+.lesson-item { width: 100%; text-align: left; border: 1px solid transparent; background: transparent; border-radius: 12px; padding: 10px 10px; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; align-items: center; }
+.lesson-item:hover:not(:disabled) { background: var(--surface2); }
+.lesson-item[aria-current="true"] { background: var(--accent-soft); border-color: var(--accent); }
+.lesson-item:disabled { cursor: not-allowed; opacity: .55; }
+.lesson-item .badge { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 13px var(--font-head); background: var(--surface2); color: var(--ink); }
+.lesson-item[data-state="done"] .badge { background: var(--good); color: #fff; }
+.lesson-item[data-state="skipped"] .badge { background: var(--amber); color: #fff; }
+.lesson-item .badge svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.lesson-item b { display: block; font-size: 14px; font-weight: 600; line-height: 1.3; }
+.lesson-item small { color: var(--muted); font-size: 12px; }
+.soon { border: 1px dashed var(--line); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; color: var(--muted); }
+.soon b { color: var(--ink); font-size: 14px; font-weight: 600; display: block; }
+.soon small { font-size: 12px; display: block; line-height: 1.4; }
+.side-foot { display: grid; gap: 8px; font-size: 12px; color: var(--muted); }
+.side-foot .btn { justify-content: center; }
+.main { min-width: 0; padding: 28px max(20px, env(safe-area-inset-right, 0px)) calc(60px + var(--dock-h)) clamp(20px, 4vw, 48px); }
+.lesson { max-width: 860px; display: grid; gap: 26px; }
+.lesson-head { display: grid; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); border: 1px solid transparent; }
+.chip.mute { background: var(--surface2); color: var(--muted); }
+.lesson h1 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -.01em; }
+.section { display: grid; gap: 12px; }
+.section > h2 { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-family: var(--font-body); font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section > h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.prose { max-width: 66ch; }
+.formula { font: 600 17px var(--font-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; overflow-x: auto; margin: 4px 0 14px; max-width: 100%; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); min-width: 0; }
+.panel > header { margin-bottom: 12px; }
+.panel > header h3 { font-size: 17px; }
+.panel > header p { color: var(--muted); font-size: 14px; margin: 4px 0 0; }
+.callout { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+.callout.next { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.lesson-nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+/* ---------- widgets ---------- */
+.widget { display: grid; gap: 16px; }
+.widget.cols { grid-template-columns: minmax(0, 260px) minmax(0, 1fr); align-items: start; }
+.controls { display: grid; gap: 12px; align-content: start; }
+.ctl { display: grid; gap: 4px; font-size: 13px; }
+.ctl label, .ctl .lbl { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-weight: 500; }
+.ctl output { font: 600 13px var(--font-mono); color: var(--ink); }
+.ctl input[type=range] { width: 100%; accent-color: var(--accent); }
+.ctl select, .ctl input[type=text] { width: 100%; border: 1px solid var(--line); background: var(--surface); border-radius: 9px; padding: 7px 10px; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.canvas-wrap { min-width: 0; }
+canvas { display: block; max-width: 100%; border-radius: 10px; background: var(--surface); }
+.readout { font: 500 13px/1.6 var(--font-mono); background: var(--surface2); border-radius: 10px; padding: 10px 12px; overflow-x: auto; }
+.readout b { color: var(--accent); }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 18px; font: 500 13px var(--font-mono); color: var(--muted); }
+.stats b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.graph-wrap { overflow-x: auto; }
+.graph-wrap svg { width: 100%; min-width: 560px; height: auto; display: block; }
+.g-edge { stroke: var(--muted); stroke-width: 1.6; fill: none; opacity: .5; }
+.g-node rect { fill: var(--surface2); stroke: var(--line); stroke-width: 1.2; rx: 10; }
+.g-node text { fill: var(--ink); font-family: var(--font-mono); text-anchor: middle; }
+.g-node .nm { font-size: 12px; fill: var(--muted); }
+.g-node .vl { font-size: 14px; font-weight: 700; }
+.g-node .gr { font-size: 12px; fill: var(--accent); font-weight: 700; }
+.g-node { opacity: .25; transition: opacity .3s; }
+.g-node.on { opacity: 1; }
+.g-node.on rect { stroke: var(--accent); }
+.g-node .gr, .g-node .vl { opacity: 0; transition: opacity .3s; }
+.g-node.has-v .vl, .g-node.has-g .gr { opacity: 1; }
+
+/* ---------- editor, celdas y salida ---------- */
+.cell { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow); min-width: 0; }
+.cell-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.cell-bar .sp { flex: 1; }
+.cell-bar .tag { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.editor { position: relative; background: var(--code-bg); }
+.editor pre, .editor textarea { font-variant-ligatures: none; margin: 0; padding: 14px 16px; font: 13px/1.65 var(--font-mono); tab-size: 2; white-space: pre; overflow: auto; width: 100%; border: 0; border-radius: 0; letter-spacing: 0; }
+.editor pre { position: absolute; inset: 0; pointer-events: none; color: var(--code-ink); overflow: hidden; }
+.editor textarea { position: relative; display: block; background: transparent; color: transparent; caret-color: var(--code-ink); resize: none; outline: none; min-height: 120px; overflow-y: hidden; overflow-x: auto; }
+.editor textarea::selection { background: rgba(124,152,255,.35); }
+.editor:focus-within { box-shadow: inset 0 0 0 2px var(--accent); }
+.tk-c { color: var(--code-muted); font-style: italic; } .tk-s { color: var(--code-str); } .tk-n { color: var(--code-num); } .tk-k { color: var(--code-kw); } .tk-f { color: var(--code-fn); }
+.out { background: var(--code-bg); border-top: 1px solid var(--code-line); color: var(--code-ink); font: 13px/1.6 var(--font-mono); padding: 10px 16px; display: grid; gap: 6px; max-height: 420px; overflow: auto; }
+.out:empty { display: none; }
+.out .ln { white-space: pre-wrap; word-break: break-word; }
+.out .res { color: var(--code-num); }
+.out .err { color: #FF8FA3; }
+.out .ech { color: var(--code-muted); }
+.out .sys { color: var(--code-muted); font-style: italic; }
+.out canvas { background: var(--surface); border-radius: 8px; justify-self: start; }
+.tests { display: grid; gap: 6px; padding: 12px 16px; border-top: 1px solid var(--line); }
+.tests:empty { display: none; }
+.test { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 14px; }
+.test .ic { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; margin-top: 2px; }
+.test.ok .ic { background: var(--good-soft); color: var(--good); }
+.test.no .ic { background: var(--bad-soft); color: var(--bad); }
+.test small { display: block; color: var(--muted); font-size: 13px; }
+.win { background: var(--good-soft); color: var(--good); border-top: 1px solid var(--line); padding: 12px 16px; font-weight: 600; }
+details.aid { border-top: 1px solid var(--line); padding: 10px 16px; }
+details.aid summary { cursor: pointer; font-weight: 600; font-size: 14px; color: var(--muted); }
+details.aid ol { margin: 8px 0 0; padding-left: 20px; color: var(--ink); font-size: 14px; }
+details.aid pre { margin: 10px 0 0; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; padding: 12px 14px; font: 12.5px/1.6 var(--font-mono); overflow: auto; }
+
+/* ---------- consola ---------- */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: var(--code-bg); color: var(--code-ink); border-top: 2px solid var(--accent); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: min(36vh, 340px); padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -10px 30px rgba(0,0,0,.25); }
+.dock-head { display: flex; align-items: center; gap: 10px; padding: 8px max(14px, env(safe-area-inset-right, 0px)) 8px max(14px, env(safe-area-inset-left, 0px)); border-bottom: 1px solid var(--code-line); flex-wrap: wrap; }
+.dock-head b { font: 700 14px var(--font-head); }
+.dock-head .sp { flex: 1; }
+.dock-head .st { font-size: 12px; color: var(--code-muted); display: flex; align-items: center; gap: 6px; }
+.dock-head .st i { width: 8px; height: 8px; border-radius: 50%; background: var(--good); display: inline-block; }
+.dock-head .st.busy i { background: var(--c2); }
+.dock .btn { background: transparent; color: var(--code-ink); border-color: var(--code-line); }
+.dock .btn:hover { background: var(--code-line); }
+.dock-out { overflow: auto; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); font: 13px/1.6 var(--font-mono); display: grid; gap: 4px; align-content: start; }
+.dock-out .ln { white-space: pre-wrap; word-break: break-word; }
+.dock-out .res { color: var(--code-num); } .dock-out .err { color: #FF8FA3; } .dock-out .ech { color: var(--code-muted); } .dock-out .sys { color: var(--code-muted); font-style: italic; }
+.dock-out canvas { background: var(--surface); border-radius: 8px; justify-self: start; max-width: 100%; }
+.dock-in { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: start; gap: 6px; padding: 8px max(14px, env(safe-area-inset-right, 0px)) 10px max(14px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--code-line); }
+.dock-in span { font: 700 15px var(--font-mono); color: var(--accent); padding-top: 3px; }
+.dock-in textarea { background: transparent; border: 0; outline: none; color: var(--code-ink); font: 13px/1.6 var(--font-mono); resize: none; min-height: 28px; max-height: 120px; width: 100%; padding: 3px 0; }
+
+/* ---------- drawer en pantallas estrechas ---------- */
+@media (max-width: 880px) {
+  .only-narrow { display: grid; }
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .sidebar { position: fixed; z-index: 45; left: 0; top: calc(var(--topbar-h) + env(safe-area-inset-top, 0px)); bottom: 0; width: min(330px, 90vw); height: auto; transform: translateX(-102%); transition: transform .25s ease; box-shadow: var(--shadow); }
+  body.nav-open .sidebar { transform: none; }
+  .scrim { position: fixed; inset: 0; z-index: 44; background: rgba(5,8,20,.5); }
+  .main { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .widget.cols { grid-template-columns: minmax(0, 1fr); }
+  .progress span.long { display: none; }
+  .brand span { display: none; }
+  .dock { height: min(52vh, 420px); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <button id="menuBtn" class="icon-btn only-narrow" aria-label="Mostrar lecciones"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <a class="brand" href="#" aria-label="Laboratorio Neuronal">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="6" cy="8" r="3" fill="var(--c2)"/><circle cx="6" cy="24" r="3" fill="var(--c2)"/><circle cx="16" cy="16" r="4" fill="var(--accent)"/><circle cx="27" cy="16" r="3" fill="var(--c3)"/><path d="M9 9l4.5 5M9 23l4.5-5M20 16h4" stroke="var(--muted)" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>Laboratorio Neuronal</span>
+    </a>
+    <div class="progress"><div class="bar" role="progressbar" aria-label="Progreso del curso"><i id="progressFill"></i></div><span id="progressText" class="long">0 completadas</span></div>
+    <button id="consoleBtn" class="btn" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6-6-6M12 19h8"/></svg>Consola</button>
+    <button id="themeBtn" class="icon-btn" aria-label="Cambiar entre tema claro y oscuro"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  </div>
+</header>
+
+<div class="shell">
+  <nav id="nav" class="sidebar" aria-label="Lecciones"></nav>
+  <main id="main" class="main"></main>
+</div>
+
+<section id="dock" class="dock" hidden aria-label="Consola de JavaScript">
+  <div class="dock-head">
+    <b>Consola</b>
+    <span id="dockSt" class="st"><i></i><span>kernel listo</span></span>
+    <span class="sp"></span>
+    <button id="dockHelp" class="btn small">ayuda()</button>
+    <button id="dockClear" class="btn small">Limpiar</button>
+    <button id="dockReset" class="btn small">Reiniciar kernel</button>
+    <button id="dockClose" class="btn small" aria-label="Cerrar la consola">Cerrar</button>
+  </div>
+  <div id="dockOut" class="dock-out" aria-live="polite"></div>
+  <div class="dock-in"><span aria-hidden="true">›</span><textarea id="dockIn" rows="1" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Escribe código JavaScript" placeholder="Escribe código y pulsa Enter"></textarea><span></span></div>
+</section>
+
+<script>
+/* Kernel del laboratorio: todo lo que el alumno puede usar en sus celdas y en la consola.
+   Se ejecuta dentro de un Web Worker (si falla, en la página). `G` es el objeto global. */
+function kernelLib(G) {
+  // ------------------------------------------------------------ formato de salida
+  function num(x) {
+    if (Number.isInteger(x)) return String(x);
+    if (!Number.isFinite(x)) return String(x);
+    const a = Math.abs(x);
+    if (a !== 0 && (a < 1e-4 || a >= 1e7)) return x.toExponential(4).replace(/\.?0+e/, "e");
+    return String(parseFloat(x.toPrecision(6)));
+  }
+  function fmt(v, depth = 0) {
+    if (v === undefined) return "undefined";
+    if (v === null) return "null";
+    if (typeof v === "number") return num(v);
+    if (typeof v === "string") return depth ? JSON.stringify(v) : v;
+    if (typeof v === "boolean") return String(v);
+    if (typeof v === "function") return "ƒ " + (v.name || "anónima");
+    if (v instanceof Error) return v.name + ": " + v.message;
+    if (v && typeof v.toString === "function" && v.constructor && v.constructor.name === "Value") return v.toString();
+    if (ArrayBuffer.isView(v)) v = Array.from(v);
+    if (Array.isArray(v)) {
+      if (depth >= 3) return "[…]";
+      const lim = depth === 0 && Array.isArray(v[0]) ? 6 : 12;
+      const parts = v.slice(0, lim).map((e) => fmt(e, depth + 1));
+      return "[" + parts.join(", ") + (v.length > lim ? `, … (${v.length})` : "") + "]";
+    }
+    if (typeof v === "object") {
+      if (depth >= 2) return "{…}";
+      const ks = Object.keys(v).slice(0, 12);
+      return "{ " + ks.map((k) => k + ": " + fmt(v[k], depth + 1)).join(", ") + (Object.keys(v).length > 12 ? ", …" : "") + " }";
+    }
+    return String(v);
+  }
+  const print = (...a) => G.__emit({ type: "log", text: a.map((x) => fmt(x)).join(" ") });
+  const plot = (spec) => G.__emit({ type: "plot", spec });
+
+  // ------------------------------------------------------------ azar reproducible
+  function rng(seed = 1) {
+    let a = seed >>> 0;
+    const next = () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    const normal = () => {
+      let u = 0;
+      while (u === 0) u = next();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * next());
+    };
+    return { next, normal, int: (n) => Math.floor(next() * n) };
+  }
+
+  // ------------------------------------------------------------ álgebra con arreglos
+  const range = (n) => Array.from({ length: n }, (_, i) => i);
+  const linspace = (a, b, n) => Array.from({ length: n }, (_, i) => (n === 1 ? a : a + ((b - a) * i) / (n - 1)));
+  const sum = (v) => v.reduce((s, x) => s + x, 0);
+  const mean = (v) => sum(v) / v.length;
+  const std = (v) => { const m = mean(v); return Math.sqrt(mean(v.map((x) => (x - m) ** 2))); };
+  const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+  const argmax = (v) => v.reduce((bi, x, i) => (x > v[bi] ? i : bi), 0);
+  const zeros = (r, c) => Array.from({ length: r }, () => new Array(c).fill(0));
+  const transpose = (A) => A[0].map((_, j) => A.map((row) => row[j]));
+  function matmul(A, B) {
+    const n = A.length, k = B.length, m = B[0].length;
+    const C = zeros(n, m);
+    for (let i = 0; i < n; i++) for (let p = 0; p < k; p++) { const a = A[i][p]; if (a !== 0) for (let j = 0; j < m; j++) C[i][j] += a * B[p][j]; }
+    return C;
+  }
+  function randn(r, c, seed = 0) { const g = rng(seed); return Array.from({ length: r }, () => Array.from({ length: c }, () => g.normal())); }
+  function softmax(v) {
+    const m = Math.max(...v);
+    const e = v.map((x) => Math.exp(x - m));
+    const s = sum(e);
+    return e.map((x) => x / s);
+  }
+
+  // ------------------------------------------------------------ autograd escalar (micrograd)
+  class Value {
+    constructor(data, prev = [], op = "") { this.data = data; this.grad = 0; this._prev = prev; this._op = op; this._back = () => {}; }
+    static w(x) { return x instanceof Value ? x : new Value(x); }
+    add(o) { o = Value.w(o); const out = new Value(this.data + o.data, [this, o], "+"); out._back = () => { this.grad += out.grad; o.grad += out.grad; }; return out; }
+    mul(o) { o = Value.w(o); const out = new Value(this.data * o.data, [this, o], "*"); out._back = () => { this.grad += o.data * out.grad; o.grad += this.data * out.grad; }; return out; }
+    pow(k) { const out = new Value(this.data ** k, [this], "**" + k); out._back = () => { this.grad += k * this.data ** (k - 1) * out.grad; }; return out; }
+    neg() { return this.mul(-1); }
+    sub(o) { return this.add(Value.w(o).neg()); }
+    div(o) { return this.mul(Value.w(o).pow(-1)); }
+    exp() { const out = new Value(Math.exp(this.data), [this], "exp"); out._back = () => { this.grad += out.data * out.grad; }; return out; }
+    log() { const out = new Value(Math.log(this.data), [this], "log"); out._back = () => { this.grad += (1 / this.data) * out.grad; }; return out; }
+    tanh() { const t = Math.tanh(this.data); const out = new Value(t, [this], "tanh"); out._back = () => { this.grad += (1 - t * t) * out.grad; }; return out; }
+    relu() { const out = new Value(Math.max(0, this.data), [this], "relu"); out._back = () => { this.grad += (out.data > 0 ? 1 : 0) * out.grad; }; return out; }
+    sigmoid() { const s = 1 / (1 + Math.exp(-this.data)); const out = new Value(s, [this], "sigmoid"); out._back = () => { this.grad += s * (1 - s) * out.grad; }; return out; }
+    backward() {
+      const topo = [], seen = new Set();
+      const build = (v) => { if (!seen.has(v)) { seen.add(v); v._prev.forEach(build); topo.push(v); } };
+      build(this);
+      this.grad = 1;
+      for (let i = topo.length - 1; i >= 0; i--) topo[i]._back();
+    }
+    toString() { return `Value(data=${num(this.data)}, grad=${num(this.grad)})`; }
+  }
+  const V = (x) => Value.w(x);
+  /** Compara el gradiente de autodiff con la derivada numérica. f recibe Values y devuelve un Value. */
+  function gradcheck(f, xs, h = 1e-6) {
+    const vs = xs.map((x) => new Value(x));
+    f(...vs).backward();
+    let worst = 0;
+    xs.forEach((x, i) => {
+      const p = xs.slice(), q = xs.slice();
+      p[i] += h; q[i] -= h;
+      const num_ = (f(...p.map((z) => new Value(z))).data - f(...q.map((z) => new Value(z))).data) / (2 * h);
+      worst = Math.max(worst, Math.abs(vs[i].grad - num_) / Math.max(1e-12, Math.abs(vs[i].grad) + Math.abs(num_)));
+    });
+    return worst;
+  }
+
+  // ------------------------------------------------------------ datos sintéticos
+  function moons(n = 200, ruido = 0.1, seed = 0) {
+    const g = rng(seed), X = [], y = [];
+    for (let i = 0; i < n; i++) {
+      const c = i % 2, t = g.next() * Math.PI;
+      const p = c === 0 ? [Math.cos(t), Math.sin(t)] : [1 - Math.cos(t), 0.5 - Math.sin(t)];
+      X.push([p[0] + ruido * g.normal(), p[1] + ruido * g.normal()]); y.push(c);
+    }
+    return { X, y };
+  }
+  function spirals(nPorClase = 100, clases = 3, ruido = 0.2, seed = 0) {
+    const g = rng(seed), X = [], y = [];
+    for (let k = 0; k < clases; k++) for (let i = 0; i < nPorClase; i++) {
+      const r = i / (nPorClase - 1), t = k * 4 + (i / (nPorClase - 1)) * 4 + ruido * g.normal();
+      X.push([r * Math.sin(t), r * Math.cos(t)]); y.push(k);
+    }
+    return { X, y };
+  }
+  function xorData(n = 200, ruido = 0.15, seed = 0) {
+    const g = rng(seed), X = [], y = [];
+    for (let i = 0; i < n; i++) { const a = g.next() < 0.5 ? -1 : 1, b = g.next() < 0.5 ? -1 : 1; X.push([a * 0.7 + ruido * g.normal(), b * 0.7 + ruido * g.normal()]); y.push(a * b > 0 ? 1 : 0); }
+    return { X, y };
+  }
+
+  // ------------------------------------------------------------ MLP vectorizado con backprop manual
+  class MLP {
+    constructor(dims, opts = {}) {
+      this.dims = dims; this.act = opts.act || "tanh"; this.optim = opts.optim || "sgd"; this.t = 0;
+      const g = rng(opts.seed ?? 0);
+      this.W = []; this.b = []; this.mW = []; this.vW = []; this.mb = []; this.vb = [];
+      for (let l = 0; l < dims.length - 1; l++) {
+        const fi = dims[l], fo = dims[l + 1];
+        const sd = this.act === "relu" ? Math.sqrt(2 / fi) : Math.sqrt(1 / fi) * (this.act === "tanh" ? 5 / 3 : 1);
+        this.W.push(Float64Array.from({ length: fi * fo }, () => g.normal() * sd));
+        this.b.push(new Float64Array(fo));
+        this.mW.push(new Float64Array(fi * fo)); this.vW.push(new Float64Array(fi * fo));
+        this.mb.push(new Float64Array(fo)); this.vb.push(new Float64Array(fo));
+      }
+    }
+    nParams() { return this.W.reduce((s, w, i) => s + w.length + this.b[i].length, 0); }
+    _f(z) { return this.act === "relu" ? (z > 0 ? z : 0) : this.act === "sigmoid" ? 1 / (1 + Math.exp(-z)) : Math.tanh(z); }
+    _df(z, a) { return this.act === "relu" ? (z > 0 ? 1 : 0) : this.act === "sigmoid" ? a * (1 - a) : 1 - a * a; }
+    _flat(X) { const n = X.length, d = X[0].length, F = new Float64Array(n * d); for (let i = 0; i < n; i++) for (let j = 0; j < d; j++) F[i * d + j] = X[i][j]; return F; }
+    _forward(F, n) {
+      const L = this.W.length, as = [F], zs = [];
+      for (let l = 0; l < L; l++) {
+        const fi = this.dims[l], fo = this.dims[l + 1], A = as[l], W = this.W[l], b = this.b[l];
+        const Z = new Float64Array(n * fo);
+        for (let i = 0; i < n; i++) for (let j = 0; j < fo; j++) { let s = b[j]; for (let p = 0; p < fi; p++) s += A[i * fi + p] * W[p * fo + j]; Z[i * fo + j] = s; }
+        zs.push(Z);
+        if (l < L - 1) { const O = new Float64Array(n * fo); for (let q = 0; q < O.length; q++) O[q] = this._f(Z[q]); as.push(O); } else as.push(Z);
+      }
+      return { as, zs };
+    }
+    _softmax(Z, n, k) {
+      const P = new Float64Array(n * k);
+      for (let i = 0; i < n; i++) { let m = -Infinity; for (let j = 0; j < k; j++) m = Math.max(m, Z[i * k + j]); let s = 0; for (let j = 0; j < k; j++) { const e = Math.exp(Z[i * k + j] - m); P[i * k + j] = e; s += e; } for (let j = 0; j < k; j++) P[i * k + j] /= s; }
+      return P;
+    }
+    predict(X) {
+      const n = X.length, k = this.dims[this.dims.length - 1], { as } = this._forward(this._flat(X), n), Z = as[as.length - 1], out = [];
+      for (let i = 0; i < n; i++) { let bj = 0; for (let j = 1; j < k; j++) if (Z[i * k + j] > Z[i * k + bj]) bj = j; out.push(bj); }
+      return out;
+    }
+    evaluate(X, y) {
+      const n = X.length, k = this.dims[this.dims.length - 1], { as } = this._forward(this._flat(X), n), P = this._softmax(as[as.length - 1], n, k);
+      let loss = 0, ok = 0;
+      for (let i = 0; i < n; i++) { loss -= Math.log(P[i * k + y[i]] + 1e-12); let bj = 0; for (let j = 1; j < k; j++) if (P[i * k + j] > P[i * k + bj]) bj = j; if (bj === y[i]) ok++; }
+      return { loss: loss / n, acc: ok / n };
+    }
+    /** Un paso de descenso con todo el lote. Devuelve { loss, acc } ANTES de actualizar. */
+    trainStep(X, y, lr = 0.1, opts = {}) {
+      const n = X.length, k = this.dims[this.dims.length - 1], L = this.W.length, wd = opts.weightDecay || 0;
+      const { as, zs } = this._forward(this._flat(X), n), P = this._softmax(as[L], n, k);
+      let loss = 0, ok = 0;
+      let dZ = new Float64Array(n * k);
+      for (let i = 0; i < n; i++) {
+        loss -= Math.log(P[i * k + y[i]] + 1e-12);
+        let bj = 0; for (let j = 1; j < k; j++) if (P[i * k + j] > P[i * k + bj]) bj = j; if (bj === y[i]) ok++;
+        for (let j = 0; j < k; j++) dZ[i * k + j] = (P[i * k + j] - (j === y[i] ? 1 : 0)) / n;
+      }
+      this.t++;
+      for (let l = L - 1; l >= 0; l--) {
+        const fi = this.dims[l], fo = this.dims[l + 1], A = as[l], W = this.W[l];
+        const dW = new Float64Array(fi * fo), db = new Float64Array(fo);
+        for (let i = 0; i < n; i++) for (let j = 0; j < fo; j++) { const d = dZ[i * fo + j]; db[j] += d; for (let p = 0; p < fi; p++) dW[p * fo + j] += A[i * fi + p] * d; }
+        let dA = null;
+        if (l > 0) {
+          dA = new Float64Array(n * fi);
+          for (let i = 0; i < n; i++) for (let p = 0; p < fi; p++) { let s = 0; for (let j = 0; j < fo; j++) s += dZ[i * fo + j] * W[p * fo + j]; dA[i * fi + p] = s * this._df(zs[l - 1][i * fi + p], A[i * fi + p]); }
+        }
+        this._update(l, dW, db, lr, wd);
+        dZ = dA;
+      }
+      return { loss: loss / n, acc: ok / n };
+    }
+    _update(l, dW, db, lr, wd) {
+      const W = this.W[l], b = this.b[l];
+      if (this.optim === "adam") {
+        const b1 = 0.9, b2 = 0.999, c1 = 1 - b1 ** this.t, c2 = 1 - b2 ** this.t;
+        for (let q = 0; q < W.length; q++) { this.mW[l][q] = b1 * this.mW[l][q] + (1 - b1) * dW[q]; this.vW[l][q] = b2 * this.vW[l][q] + (1 - b2) * dW[q] * dW[q]; W[q] -= lr * (this.mW[l][q] / c1 / (Math.sqrt(this.vW[l][q] / c2) + 1e-8) + wd * W[q]); }
+        for (let q = 0; q < b.length; q++) { this.mb[l][q] = b1 * this.mb[l][q] + (1 - b1) * db[q]; this.vb[l][q] = b2 * this.vb[l][q] + (1 - b2) * db[q] * db[q]; b[q] -= lr * (this.mb[l][q] / c1 / (Math.sqrt(this.vb[l][q] / c2) + 1e-8)); }
+      } else if (this.optim === "momentum") {
+        for (let q = 0; q < W.length; q++) { this.mW[l][q] = 0.9 * this.mW[l][q] + dW[q]; W[q] -= lr * (this.mW[l][q] + wd * W[q]); }
+        for (let q = 0; q < b.length; q++) { this.mb[l][q] = 0.9 * this.mb[l][q] + db[q]; b[q] -= lr * this.mb[l][q]; }
+      } else {
+        for (let q = 0; q < W.length; q++) W[q] -= lr * (dW[q] + wd * W[q]);
+        for (let q = 0; q < b.length; q++) b[q] -= lr * db[q];
+      }
+    }
+  }
+  /** Rejilla de predicciones del modelo para dibujar la frontera de decisión. */
+  function gridPredict(model, data, res = 48) {
+    const xs = data.X.map((p) => p[0]), ys = data.X.map((p) => p[1]);
+    const pad = 0.25, x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+    const pts = [];
+    for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) pts.push([x0 + ((x1 - x0) * (i + 0.5)) / res, y1 - ((y1 - y0) * (j + 0.5)) / res]);
+    return { grid: model.predict(pts), res, bounds: [x0, x1, y0, y1] };
+  }
+  function plotBoundary(model, data, titulo = "Frontera de decisión") {
+    const g = gridPredict(model, data);
+    plot({ type: "boundary", title: titulo, grid: g.grid, res: g.res, bounds: g.bounds, points: data.X.map((p, i) => [p[0], p[1], data.y[i]]) });
+  }
+
+  // ------------------------------------------------------------ ayuda
+  function ayuda() {
+    print([
+      "Funciones disponibles en la consola y en las celdas:",
+      "  print(...)  plot({type:'line'|'scatter'|'heat'|'bar', ...})  plotBoundary(modelo, datos)",
+      "  Value(x)    autograd escalar: a.add(b) .sub .mul .div .pow(k) .exp() .log() .tanh() .relu() .sigmoid() .backward()",
+      "  V(x)        envuelve un número en Value      gradcheck(f, [x1, x2, ...])",
+      "  matmul(A,B) transpose(A) zeros(r,c) randn(r,c,seed) softmax(v) dot(a,b) argmax(v)",
+      "  range(n) linspace(a,b,n) sum(v) mean(v) std(v)       rng(seed) → { next(), normal(), int(n) }",
+      "  moons(n,ruido,seed) spirals(nPorClase,clases,ruido,seed) xorData(n,ruido,seed)",
+      "  new MLP([2,16,3], { act:'tanh'|'relu'|'sigmoid', optim:'sgd'|'momentum'|'adam', seed })",
+      "      .trainStep(X, y, lr) → {loss, acc}   .evaluate(X, y)   .predict(X)   .nParams()",
+      "Las variables que declares con const o let se conservan entre celdas (como en un cuaderno).",
+    ].join("\n"));
+  }
+
+  // ------------------------------------------------------------ ejecución
+  function prep(code) {
+    return code
+      .replace(/^(const|let)\s/gm, "var ")
+      .replace(/^class\s+([A-Za-z_$][\w$]*)/gm, "var $1 = class $1");
+  }
+  G.__handle = function (msg) {
+    if (msg.type === "run") {
+      try {
+        const r = (0, eval)(prep(msg.code));
+        G.__emit({ type: "result", id: msg.id, ok: true, has: r !== undefined, value: r === undefined ? "" : fmt(r) });
+      } catch (e) {
+        G.__emit({ type: "result", id: msg.id, ok: false, error: e && e.name ? e.name + ": " + e.message : String(e) });
+      }
+    } else if (msg.type === "check") {
+      let results;
+      try { const fn = (0, eval)("(" + msg.code + ")"); results = fn(); }
+      catch (e) { results = [{ name: "Preparación del reto", ok: false, msg: String(e && e.message ? e.message : e) }]; }
+      G.__emit({ type: "check", id: msg.id, results });
+    }
+  };
+
+  Object.assign(G, { fmt, num, print, plot, rng, range, linspace, sum, mean, std, dot, argmax, zeros, transpose, matmul, randn, softmax,
+    Value, V, gradcheck, moons, spirals, xorData, MLP, gridPredict, plotBoundary, ayuda });
+  if (G.console) { G.console.log = print; G.console.info = print; G.console.warn = print; G.console.error = (...a) => print("⚠", ...a); }
+}
+if (typeof module !== "undefined") module.exports = kernelLib;
+
+</script>
+<script>
+/* Contenido del laboratorio. Para añadir una lección nueva, agrega un objeto a LESSONS.
+   Cada reto `check` se ejecuta dentro del kernel, con acceso a lo que el alumno definió. */
+const LESSONS = [
+  {
+    id: "neurona", num: 1, title: "La neurona", week: "Semana 1", minutes: 10, widget: "neurona",
+    intro: `<p>Una neurona artificial hace tres cosas: multiplica cada entrada por un <b>peso</b>, suma todo junto con un <b>sesgo</b> y pasa el resultado por una <b>activación</b> no lineal.</p>
+      <p class="formula">y = φ( w₁·x₁ + w₂·x₂ + b )</p>
+      <p>Los pesos giran la frontera de decisión, el sesgo la desplaza y la activación decide si la transición es brusca o suave. Sin la activación, apilar capas no serviría de nada, porque una composición de funciones lineales sigue siendo lineal.</p>`,
+    widgetTitle: "Mueve los pesos y mira la frontera",
+    widgetNote: "El color muestra la salida de la neurona en cada punto (x₁, x₂). Haz clic en el mapa para evaluar un punto concreto.",
+    taskIntro: `<p>Escribe la neurona en código. Después ajusta pesos a mano para que una neurona sigmoide se comporte como la puerta lógica <b>AND</b>: salida alta solo si <code>x₁ = 1</code> y <code>x₂ = 1</code>.</p>`,
+    code: `// y = tanh(w·x + b)
+function neurona(w, x, b) {
+  // suma los productos w[i] * x[i], añade b y aplica Math.tanh
+  return 0;
+}
+print(neurona([1, 2], [0.5, -1], 0.1)); // debería ser ≈ -0.8854
+
+// Reto 2: elige w y b para que sigmoide(w1*x1 + w2*x2 + b) sea una puerta AND
+const AND = { w: [0, 0], b: 0 };
+const sig = (z) => 1 / (1 + Math.exp(-z));
+for (const [a, c] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
+  print(a, c, '->', sig(AND.w[0] * a + AND.w[1] * c + AND.b));
+}`,
+    solution: `function neurona(w, x, b) {
+  let s = b;
+  for (let i = 0; i < w.length; i++) s += w[i] * x[i];
+  return Math.tanh(s);
+}
+print(neurona([1, 2], [0.5, -1], 0.1));
+
+const AND = { w: [10, 10], b: -15 };
+const sig = (z) => 1 / (1 + Math.exp(-z));
+for (const [a, c] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
+  print(a, c, '->', sig(AND.w[0] * a + AND.w[1] * c + AND.b));
+}`,
+    hints: ["Recorre w con un bucle for y acumula w[i] * x[i] en una variable que empiece en b.", "Para AND necesitas que w₁ + w₂ + b sea claramente positivo, pero que w₁ + b, w₂ + b y b sean claramente negativos.", "Prueba con pesos grandes (10 y 10) y un sesgo que deje (1,1) en +5 y los demás por debajo de −5."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      const r = [];
+      if (typeof neurona !== "function") return [t("Existe la función neurona(w, x, b)", false, "Todavía no está definida. Ejecuta la celda con function neurona(w, x, b) { ... }.")];
+      const y = neurona([1, 2], [0.5, -1], 0.1);
+      r.push(t("neurona([1,2], [0.5,-1], 0.1) ≈ −0.8854", Math.abs(y - Math.tanh(-1.4)) < 1e-6, "Devolvió " + fmt(y) + ". Calcula tanh(w·x + b)."));
+      r.push(t("Con pesos 0 la salida es tanh(b)", Math.abs(neurona([0, 0], [3, 4], 0.5) - Math.tanh(0.5)) < 1e-9, "Con w = [0,0] solo debe contar el sesgo."));
+      r.push(t("Funciona con una sola entrada", Math.abs(neurona([3], [1], 0.5) - Math.tanh(3.5)) < 1e-9, "No asumas que w tiene exactamente 2 elementos."));
+      if (typeof AND === "undefined" || !AND || !AND.w) r.push(t("Existe AND = { w: [..], b: .. }", false, "Define la constante AND."));
+      else {
+        const s = (a, c) => 1 / (1 + Math.exp(-(AND.w[0] * a + AND.w[1] * c + AND.b)));
+        const o = [s(0, 0), s(0, 1), s(1, 0), s(1, 1)];
+        r.push(t("La neurona implementa AND", o[3] > 0.9 && o[0] < 0.1 && o[1] < 0.1 && o[2] < 0.1, "Salidas para (0,0) (0,1) (1,0) (1,1): " + fmt(o) + ". Debe verse algo como [≈0, ≈0, ≈0, ≈1]."));
+      }
+      return r;
+    },
+    outro: `Una neurona traza una frontera recta. Para dibujar curvas hacen falta varias capas, que verás en la lección 4. Esto es la <b>Semana 1</b> de la guía.`,
+  },
+  {
+    id: "gradiente", num: 2, title: "Bajar por la pérdida", week: "Semana 1", minutes: 10, widget: "gradiente",
+    intro: `<p>Entrenar una red significa encontrar parámetros que hagan pequeña una <b>pérdida</b>. El gradiente apunta hacia donde la pérdida sube más rápido, así que damos un paso en sentido contrario:</p>
+      <p class="formula">x ← x − η · f′(x)</p>
+      <p>η es la <b>tasa de aprendizaje</b>. Si es muy pequeña, avanzas con lentitud. Si es muy grande, te pasas del mínimo y puedes divergir. Además, con varios valles, el punto de partida decide en cuál terminas.</p>`,
+    widgetTitle: "Un paso a la vez",
+    widgetNote: "La función tiene dos valles. Cambia la tasa de aprendizaje y el punto de partida, y pulsa «Paso» o «Ejecutar».",
+    taskIntro: `<p>Implementa el descenso de gradiente sobre <code>f(x) = (x − 3)² + 1</code>, cuyo gradiente es <code>2(x − 3)</code>. Luego elige la tasa <code>LR</code> que llega al mínimo en solo 5 pasos.</p>`,
+    code: `// Aplica  x ← x − lr · grad(x)  durante 'pasos' veces y devuelve el x final
+function descenso(grad, x0, lr, pasos) {
+  let x = x0;
+  // tu bucle aquí
+  return x;
+}
+const g = (x) => 2 * (x - 3);
+print('lr 0.1, 50 pasos ->', descenso(g, 0, 0.1, 50));   // cerca de 3
+print('lr 1.1, 50 pasos ->', descenso(g, 0, 1.1, 50));   // diverge
+
+// Reto 2: ¿qué lr llega a ≈3 (error < 0.01) en solo 5 pasos desde x = 0?
+const LR = 0.1;
+print('con LR =', LR, '->', descenso(g, 0, LR, 5));`,
+    solution: `function descenso(grad, x0, lr, pasos) {
+  let x = x0;
+  for (let i = 0; i < pasos; i++) x = x - lr * grad(x);
+  return x;
+}
+const g = (x) => 2 * (x - 3);
+print('lr 0.1, 50 pasos ->', descenso(g, 0, 0.1, 50));
+print('lr 1.1, 50 pasos ->', descenso(g, 0, 1.1, 50));
+
+const LR = 0.5;
+print('con LR =', LR, '->', descenso(g, 0, LR, 5));`,
+    hints: ["Dentro del bucle: x = x - lr * grad(x).", "Cada paso multiplica el error por (1 − 2·lr). ¿Qué lr lo hace 0?", "Con lr = 0.5 el error se anula en un paso. Cualquier valor entre 0.4 y 0.6 sirve."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof descenso !== "function") return [t("Existe descenso(grad, x0, lr, pasos)", false, "Todavía no está definida.")];
+      const g = (x) => 2 * (x - 3), r = [];
+      r.push(t("Un paso desde 0 con lr 0.1 da 0.6", Math.abs(descenso(g, 0, 0.1, 1) - 0.6) < 1e-9, "Con x = 0: 0 − 0.1·2·(0 − 3) = 0.6. Obtuviste " + fmt(descenso(g, 0, 0.1, 1)) + "."));
+      r.push(t("Con 50 pasos y lr 0.1 llega a 3 (error < 0.001)", Math.abs(descenso(g, 0, 0.1, 50) - 3) < 1e-3, "Obtuviste " + fmt(descenso(g, 0, 0.1, 50)) + "."));
+      r.push(t("Con lr 1.1 diverge (|x| > 1000)", Math.abs(descenso(g, 0, 1.1, 50)) > 1000, "Con lr = 1.1 cada paso multiplica el error por −1.2, así que debe crecer."));
+      if (typeof LR !== "number") r.push(t("Define LR", false, "Declara const LR = ..."));
+      else r.push(t("LR llega a 3 en 5 pasos (error < 0.01)", Math.abs(descenso(g, 0, LR, 5) - 3) < 0.01, "Con LR = " + LR + " obtienes " + fmt(descenso(g, 0, LR, 5)) + ". Cada paso multiplica el error por (1 − 2·LR)."));
+      return r;
+    },
+    outro: `Todo el entrenamiento de redes, desde esta parábola hasta un GPT, repite este paso. Lo que cambia es cómo se calcula el gradiente: eso es la retropropagación, la siguiente lección.`,
+  },
+  {
+    id: "backprop", num: 3, title: "Retropropagación", week: "Semana 1", minutes: 15, widget: "grafo",
+    intro: `<p>Una red es un grafo de operaciones simples. Para obtener el gradiente de la pérdida respecto a cada parámetro, se recorre el grafo <b>hacia atrás</b> multiplicando derivadas locales (la regla de la cadena).</p>
+      <p class="formula">L = ( tanh(w·x + b) − 1 )²</p>
+      <p>Dos reglas lo resumen: cada nodo reparte el gradiente que recibe según su derivada local, y si un nodo se usa varias veces, <b>los gradientes se suman</b>.</p>`,
+    widgetTitle: "El grafo de L con los números de la guía",
+    widgetNote: "Pulsa «Hacia delante» para calcular valores y «Hacia atrás» para propagar gradientes. Son los números del ejemplo de la Semana 1.",
+    taskIntro: `<p>La clase <code>Value</code> ya está en el kernel (es el <code>micrograd</code> de la guía). Construye el grafo de arriba con sus métodos y llama a <code>backward()</code>.</p>`,
+    code: `const w = new Value(0.5), x = new Value(2), b = new Value(-0.3);
+// L = (tanh(w*x + b) - 1)^2   → usa .mul  .add  .tanh  .sub  .pow
+const L = w;   // ← reemplaza por la expresión
+L.backward();
+print('dL/dw =', w.grad, ' dL/db =', b.grad, ' dL/dx =', x.grad);
+
+// Reto 2: un nodo usado dos veces. q = y*y + y con y = 3  → dq/dy = 2y + 1 = 7
+const y = new Value(3);
+const q = y;   // ← reemplaza
+q.backward();
+print('dq/dy =', y.grad, '(debería ser 7)');`,
+    solution: `const w = new Value(0.5), x = new Value(2), b = new Value(-0.3);
+const L = w.mul(x).add(b).tanh().sub(1).pow(2);
+L.backward();
+print('dL/dw =', w.grad, ' dL/db =', b.grad, ' dL/dx =', x.grad);
+
+const y = new Value(3);
+const q = y.mul(y).add(y);
+q.backward();
+print('dq/dy =', y.grad, '(debería ser 7)');`,
+    hints: ["w.mul(x) crea el nodo w·x. Encadena .add(b), luego .tanh().", "(a − 1)² se escribe a.sub(1).pow(2).", "Para q usa y.mul(y).add(y). Verás que y recibe gradiente por tres caminos y los suma."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      const r = [];
+      if (typeof w === "undefined" || typeof L === "undefined") return [t("Existen w, x, b y L", false, "Ejecuta la celda para crear los valores.")];
+      r.push(t("L ≈ 0.15652", L instanceof Value && Math.abs(L.data - 0.15652) < 1e-4, "L vale " + (L && L.data !== undefined ? fmt(L.data) : "?") + ". Revisa la expresión: (tanh(w·x + b) − 1)²."));
+      r.push(t("dL/dw ≈ −1.00449", Math.abs(w.grad + 1.00449) < 1e-3, "w.grad = " + fmt(w.grad) + ". ¿Llamaste a L.backward()?"));
+      r.push(t("dL/db ≈ −0.50225", Math.abs(b.grad + 0.50225) < 1e-3, "b.grad = " + fmt(b.grad)));
+      r.push(t("dL/dx ≈ −0.25112", Math.abs(x.grad + 0.25112) < 1e-3, "x.grad = " + fmt(x.grad)));
+      r.push(t("Tu grafo pasa el gradient check", (() => { try { return gradcheck((a, c, d) => a.mul(d).add(c).tanh().sub(1).pow(2), [0.5, -0.3, 2]) < 1e-6; } catch (e) { return false; } })(), "La función de referencia no pasó el chequeo numérico."));
+      if (typeof q === "undefined" || typeof y === "undefined") r.push(t("Existen y y q", false, "Define y y q."));
+      else r.push(t("dq/dy = 7 (los gradientes se suman)", Math.abs(y.grad - 7) < 1e-9, "y.grad = " + fmt(y.grad) + ". Con q = y·y + y, y aparece tres veces."));
+      return r;
+    },
+    outro: `Esto es lo que hace <code>loss.backward()</code> en PyTorch, sobre tensores en lugar de escalares. En la guía de la Semana 1 lo escribes completo y lo verificas con derivadas numéricas.`,
+  },
+  {
+    id: "red", num: 4, title: "Tu primera red", week: "Semana 2", minutes: 15, widget: "playground",
+    intro: `<p>Con una sola neurona la frontera es una recta. Una red con <b>capas ocultas</b> compone muchas neuronas y puede dibujar fronteras curvas, como estas espirales entrelazadas.</p>
+      <p>Cada paso de entrenamiento es el ciclo de siempre: <b>forward</b> (predecir), <b>pérdida</b> (medir el error), <b>backward</b> (gradientes) y <b>actualizar</b> los pesos.</p>`,
+    widgetTitle: "Entrena una red en vivo",
+    widgetNote: "Prueba una red muy pequeña sobre espirales y luego agrándala. Compara SGD con Adam. Todo corre en tu navegador.",
+    taskIntro: `<p>El código de abajo entrena una red diminuta y se queda corto. Cámbialo hasta superar el <b>95 %</b> de precisión en las espirales, y que además generalice a puntos nuevos (el reto los comprueba con otra semilla).</p>`,
+    code: `const data = spirals(100, 3, 0.2, 0);          // 300 puntos, 3 clases
+const red = new MLP([2, 4, 3], { act: 'tanh', seed: 1 });
+for (let paso = 0; paso <= 200; paso++) {
+  const r = red.trainStep(data.X, data.y, 0.1); // lote completo, lr 0.1
+  if (paso % 50 === 0) print('paso', paso, ' pérdida', r.loss, ' precisión', r.acc);
+}
+plotBoundary(red, data);
+// Prueba: más neuronas, más capas, más pasos, otra tasa de aprendizaje, optim: 'adam'`,
+    solution: `const data = spirals(100, 3, 0.2, 0);
+const red = new MLP([2, 16, 16, 3], { act: 'tanh', seed: 1 });
+for (let paso = 0; paso <= 800; paso++) {
+  const r = red.trainStep(data.X, data.y, 0.5);
+  if (paso % 200 === 0) print('paso', paso, ' pérdida', r.loss, ' precisión', r.acc);
+}
+plotBoundary(red, data);`,
+    hints: ["Con 4 neuronas ocultas no alcanza la capacidad para las espirales. Prueba [2, 16, 16, 3].", "200 pasos con lr 0.1 apenas empiezan a aprender. Sube el lr a 0.3–0.5 o usa más pasos.", "Con optim: 'adam' y lr 0.02 suele converger más rápido que con SGD."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof red === "undefined" || typeof data === "undefined" || !(red instanceof MLP)) return [t("Existen data y red (un MLP)", false, "Ejecuta la celda para crearlos.")];
+      const tr = red.evaluate(data.X, data.y), nuevo = spirals(100, 3, 0.2, 99), te = red.evaluate(nuevo.X, nuevo.y);
+      return [
+        t("Precisión en entrenamiento ≥ 95 %", tr.acc >= 0.95, "Ahora tienes " + (tr.acc * 100).toFixed(1) + " %. Agranda la red o entrena más."),
+        t("Precisión en datos nuevos ≥ 88 %", te.acc >= 0.88, "En datos nuevos: " + (te.acc * 100).toFixed(1) + " %. Si entrenamiento es alto y esto bajo, hay sobreajuste."),
+        t("La pérdida es menor que ln 3 ≈ 1.099", tr.loss < Math.log(3), "Una red que no aprendió tiene pérdida ≈ ln(3) = 1.099."),
+      ];
+    },
+    outro: `Ahora sabes cómo se ve entrenar una red de verdad. En la <b>Semana 2</b> escribes este mismo MLP con NumPy y backprop manual, y en la <b>Semana 3</b> aprendes a diagnosticar cuando no converge.`,
+  },
+  {
+    id: "init", num: 5, title: "Inicializar bien", week: "Semana 3", minutes: 15, widget: "init",
+    intro: `<p>Si los pesos iniciales son demasiado pequeños, las señales se apagan capa tras capa. Si son demasiado grandes, explotan o saturan. En ambos casos el gradiente no llega y la red no aprende.</p>
+      <p class="formula">Xavier: Var(w) = 1/fan_in &nbsp;·&nbsp; He: Var(w) = 2/fan_in</p>
+      <p>La idea: que la <b>desviación estándar</b> de las activaciones se mantenga más o menos igual a través de las capas. ReLU anula la mitad de las señales, por eso He lleva un 2.</p>`,
+    widgetTitle: "30 capas, cuatro inicializaciones",
+    widgetNote: "Muestra la desviación estándar de las activaciones en cada capa (escala logarítmica). Cambia la activación y compara.",
+    taskIntro: `<p>Escribe las funciones que devuelven la desviación estándar de los pesos para cada activación. El reto simula 30 capas de ancho 128 y exige que la señal sobreviva sin desvanecerse ni explotar.</p>`,
+    code: `function desvPorCapa(escala, act, capas = 30, ancho = 128) {
+  let h = randn(64, ancho, 1);
+  const res = [];
+  for (let l = 0; l < capas; l++) {
+    const W = randn(ancho, ancho, 100 + l).map(f => f.map(v => v * escala(ancho)));
+    h = matmul(h, W).map(f => f.map(act));
+    res.push(std(h.flat()));
+  }
+  return res;
+}
+// Devuelven la desviación estándar de los pesos para una capa con fanIn entradas
+function escalaRelu(fanIn) { return 1; }   // ← cámbiala
+function escalaTanh(fanIn) { return 1; }   // ← cámbiala
+
+const relu = (z) => Math.max(0, z);
+const sr = desvPorCapa(escalaRelu, relu), st = desvPorCapa(escalaTanh, Math.tanh);
+print('ReLU, capa 30:', sr[29], ' tanh, capa 30:', st[29]);
+plot({ type: 'line', title: 'std de activaciones por capa', ylog: true,
+       series: [{ name: 'ReLU', y: sr }, { name: 'tanh', y: st }] });`,
+    solution: `function desvPorCapa(escala, act, capas = 30, ancho = 128) {
+  let h = randn(64, ancho, 1);
+  const res = [];
+  for (let l = 0; l < capas; l++) {
+    const W = randn(ancho, ancho, 100 + l).map(f => f.map(v => v * escala(ancho)));
+    h = matmul(h, W).map(f => f.map(act));
+    res.push(std(h.flat()));
+  }
+  return res;
+}
+function escalaRelu(fanIn) { return Math.sqrt(2 / fanIn); }
+function escalaTanh(fanIn) { return (5 / 3) / Math.sqrt(fanIn); }
+
+const relu = (z) => Math.max(0, z);
+const sr = desvPorCapa(escalaRelu, relu), st = desvPorCapa(escalaTanh, Math.tanh);
+print('ReLU, capa 30:', sr[29], ' tanh, capa 30:', st[29]);
+plot({ type: 'line', title: 'std de activaciones por capa', ylog: true,
+       series: [{ name: 'ReLU', y: sr }, { name: 'tanh', y: st }] });`,
+    hints: ["Para ReLU usa He: Math.sqrt(2 / fanIn).", "Para tanh, Xavier (Math.sqrt(1 / fanIn)) se contrae despacio. Prueba la ganancia 5/3: (5/3) / Math.sqrt(fanIn), o simplemente He.", "Mira la gráfica: la línea debe quedarse aproximadamente horizontal."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof escalaRelu !== "function" || typeof escalaTanh !== "function") return [t("Existen escalaRelu y escalaTanh", false, "Define ambas funciones.")];
+      const sim = (escala, act) => { let h = randn(64, 128, 1), s = 0; for (let l = 0; l < 30; l++) { const sc = escala(128); h = matmul(h, randn(128, 128, 100 + l).map((f) => f.map((v) => v * sc))).map((f) => f.map(act)); s = std(h.flat()); } return s; };
+      const a = sim(escalaRelu, (z) => Math.max(0, z)), b = sim(escalaTanh, Math.tanh);
+      return [
+        t("ReLU: std en la capa 30 entre 0.3 y 3", a > 0.3 && a < 3, "Tu std final es " + fmt(a) + ". Si es casi 0 la señal se apagó; si es enorme, explotó."),
+        t("tanh: std en la capa 30 entre 0.3 y 1", b > 0.3 && b < 1, "Tu std final es " + fmt(b) + ". Con tanh, std ≈ 1 significa saturación; casi 0, desvanecimiento."),
+      ];
+    },
+    outro: `Hoy las normalizaciones (LayerNorm, RMSNorm) y las conexiones residuales hacen este problema mucho menos frágil, pero la inicialización sigue importando. Lo verás completo en la <b>Semana 3</b>.`,
+  },
+  {
+    id: "atencion", num: 6, title: "Atención", week: "Semana 5", minutes: 20, widget: "atencion",
+    intro: `<p>La atención deja que cada token mire a los demás y tome de ellos una mezcla ponderada de información. Cada token produce una consulta <b>Q</b>, una clave <b>K</b> y un valor <b>V</b>:</p>
+      <p class="formula">Atención(Q, K, V) = softmax( Q·Kᵀ / √d + M ) · V</p>
+      <p>La máscara causal <b>M</b> impide mirar al futuro (necesaria para generar texto). Dividir por √d evita que los productos punto crezcan con la dimensión y que el softmax se vuelva casi un «uno-caliente» con gradientes diminutos.</p>`,
+    widgetTitle: "El mapa de atención de una frase",
+    widgetNote: "Cada fila es un token y cuánto atiende a cada columna. Sube la dimensión d y quita el escalado: las filas se vuelven casi 0/1.",
+    taskIntro: `<p>Implementa la función de atención completa con las utilidades del kernel (<code>matmul</code>, <code>transpose</code>, <code>softmax</code>). Debe devolver la salida y los pesos.</p>`,
+    code: `// Q, K, V: matrices T×d (arreglos de arreglos). Devuelve { salida, pesos }
+function atencion(Q, K, V, causal = true) {
+  const T = Q.length, d = Q[0].length;
+  // 1) scores = Q·Kᵀ / √d     2) máscara causal: pon -Infinity cuando j > i
+  // 3) pesos = softmax por fila  4) salida = pesos · V
+  return { salida: V, pesos: zeros(T, T) };
+}
+const Q = randn(4, 3, 1), K = randn(4, 3, 2), V = randn(4, 3, 3);
+const r = atencion(Q, K, V);
+print('pesos (fila 0):', r.pesos[0]);
+print('pesos (fila 3):', r.pesos[3]);
+plot({ type: 'heat', title: 'pesos de atención', matrix: r.pesos });`,
+    solution: `function atencion(Q, K, V, causal = true) {
+  const T = Q.length, d = Q[0].length;
+  const scores = matmul(Q, transpose(K)).map(f => f.map(s => s / Math.sqrt(d)));
+  const pesos = scores.map((fila, i) => softmax(fila.map((s, j) => (causal && j > i ? -Infinity : s))));
+  return { salida: matmul(pesos, V), pesos };
+}
+const Q = randn(4, 3, 1), K = randn(4, 3, 2), V = randn(4, 3, 3);
+const r = atencion(Q, K, V);
+print('pesos (fila 0):', r.pesos[0]);
+print('pesos (fila 3):', r.pesos[3]);
+plot({ type: 'heat', title: 'pesos de atención', matrix: r.pesos });`,
+    hints: ["scores = matmul(Q, transpose(K)) y luego divide cada elemento por Math.sqrt(d).", "Para la máscara: recorre cada fila i y sustituye por -Infinity los elementos con j > i, antes del softmax.", "salida = matmul(pesos, V). Cada fila de pesos suma 1."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof atencion !== "function") return [t("Existe atencion(Q, K, V, causal)", false, "Todavía no está definida.")];
+      const Q = randn(5, 4, 11), K = randn(5, 4, 12), V = randn(5, 4, 13), r = [];
+      let res;
+      try { res = atencion(Q, K, V, true); } catch (e) { return [t("La función se ejecuta sin errores", false, String(e.message))]; }
+      if (!res || !res.pesos || !res.salida) return [t("Devuelve { salida, pesos }", false, "Debe devolver un objeto con esas dos propiedades.")];
+      const ref = (causal) => { const S = matmul(Q, transpose(K)).map((f) => f.map((s) => s / 2)); const P = S.map((f, i) => softmax(f.map((s, j) => (causal && j > i ? -Infinity : s)))); return { P, O: matmul(P, V) }; };
+      const e1 = ref(true), maxd = (A, B) => Math.max(...A.flat().map((x, i) => Math.abs(x - B.flat()[i])));
+      r.push(t("Las filas de pesos suman 1", res.pesos.every((f) => Math.abs(sum(f) - 1) < 1e-9), "Aplica softmax a cada fila."));
+      r.push(t("Máscara causal: el futuro tiene peso 0", res.pesos.every((f, i) => f.every((p, j) => j <= i || Math.abs(p) < 1e-12)), "Hay peso en posiciones j > i."));
+      r.push(t("Los pesos coinciden con la referencia", maxd(res.pesos, e1.P) < 1e-6, "Revisa que dividas por √d (d = " + Q[0].length + ") antes del softmax."));
+      r.push(t("La salida coincide con la referencia", maxd(res.salida, e1.O) < 1e-6, "salida = pesos · V."));
+      const sin = atencion(Q, K, V, false), e2 = ref(false);
+      r.push(t("Con causal = false mira todo el contexto", maxd(sin.pesos, e2.P) < 1e-6, "Cuando causal es false no debes enmascarar."));
+      return r;
+    },
+    outro: `Esta función, repetida en varias cabezas con proyecciones aprendidas, más una MLP y conexiones residuales, es un bloque Transformer. La <b>Semana 5</b> lo implementa completo, con RoPE y GQA.`,
+  },
+  {
+    id: "lenguaje", num: 7, title: "Modelos de lenguaje", week: "Semana 3 y 5", minutes: 15, widget: "lenguaje",
+    intro: `<p>Un modelo de lenguaje asigna probabilidades al siguiente carácter (o palabra) dado el contexto. Se entrena minimizando la <b>entropía cruzada</b> y la métrica clave es esa pérdida media, en nats por carácter.</p>
+      <p>Aquí el texto sale de una gramática diminuta cuya entropía conocemos: <b>ningún modelo puede bajar de ese valor</b>. Eso permite saber exactamente cuánto falta.</p>
+      <p>Para generar, se elige el siguiente carácter al azar según las probabilidades. La <b>temperatura</b> τ las reescala: τ pequeña vuelve el muestreo casi determinista, τ grande lo acerca a un sorteo uniforme.</p>`,
+    widgetTitle: "Más contexto, menos pérdida",
+    widgetNote: "Un modelo de conteo con contexto de n caracteres. Mira cómo la pérdida baja hacia la cota teórica y genera frases con distintas temperaturas.",
+    taskIntro: `<p>Implementa el muestreo con temperatura. Recibe un arreglo de probabilidades, la temperatura y un número aleatorio <code>u</code> en [0, 1) (así el reto es determinista), y devuelve el índice elegido.</p>`,
+    code: `// probs: probabilidades que suman 1.  T: temperatura.  u: número en [0,1)
+// 1) reescala: q ∝ probs^(1/T)  (equivale a softmax de log(probs)/T)
+// 2) recorre la suma acumulada y devuelve el primer índice con u < acumulado
+function muestrear(probs, T, u) {
+  return 0;
+}
+const p = [0.1, 0.6, 0.3];
+print('T=1, u=0.05 ->', muestrear(p, 1, 0.05), ' u=0.5 ->', muestrear(p, 1, 0.5), ' u=0.9 ->', muestrear(p, 1, 0.9));
+print('T=0.05 (casi argmax), u=0.01 ->', muestrear(p, 0.05, 0.01));
+
+// ¿Cuántas veces sale cada índice con T = 0.5? (1000 sorteos)
+const g = rng(3), cuenta = [0, 0, 0];
+for (let i = 0; i < 1000; i++) cuenta[muestrear(p, 0.5, g.next())]++;
+print('T=0.5 ->', cuenta);`,
+    solution: `function muestrear(probs, T, u) {
+  const q = softmax(probs.map(p => Math.log(p + 1e-12) / T));
+  let acum = 0;
+  for (let i = 0; i < q.length; i++) {
+    acum += q[i];
+    if (u < acum) return i;
+  }
+  return q.length - 1;
+}
+const p = [0.1, 0.6, 0.3];
+print('T=1, u=0.05 ->', muestrear(p, 1, 0.05), ' u=0.5 ->', muestrear(p, 1, 0.5), ' u=0.9 ->', muestrear(p, 1, 0.9));
+print('T=0.05 (casi argmax), u=0.01 ->', muestrear(p, 0.05, 0.01));
+const g = rng(3), cuenta = [0, 0, 0];
+for (let i = 0; i < 1000; i++) cuenta[muestrear(p, 0.5, g.next())]++;
+print('T=0.5 ->', cuenta);`,
+    hints: ["softmax(probs.map(p => Math.log(p) / T)) hace el reescalado. Suma 1 por construcción.", "Con T pequeña, el cociente log(p)/T separa mucho los valores y el softmax se vuelve casi un 1 en el más probable.", "Acumula q[0], q[0]+q[1], … y devuelve el primer i con u < acumulado."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof muestrear !== "function") return [t("Existe muestrear(probs, T, u)", false, "Todavía no está definida.")];
+      const p = [0.1, 0.6, 0.3], r = [];
+      r.push(t("T = 1 respeta las probabilidades (u = 0.05, 0.5, 0.9 → 0, 1, 2)", muestrear(p, 1, 0.05) === 0 && muestrear(p, 1, 0.5) === 1 && muestrear(p, 1, 0.9) === 2, "Obtuviste " + fmt([muestrear(p, 1, 0.05), muestrear(p, 1, 0.5), muestrear(p, 1, 0.9)]) + ". Con T = 1 los umbrales acumulados son 0.1 y 0.7."));
+      r.push(t("T muy pequeña elige siempre el más probable", [0.01, 0.4, 0.99].every((u) => muestrear(p, 0.05, u) === 1), "Con T = 0.05 debería salir siempre el índice 1."));
+      r.push(t("T muy grande se acerca a un sorteo uniforme", muestrear(p, 100, 0.2) === 0 && muestrear(p, 100, 0.5) === 1 && muestrear(p, 100, 0.9) === 2, "Con T = 100 las tres opciones son casi equiprobables (tercios)."));
+      const g = rng(5), c = [0, 0, 0];
+      for (let i = 0; i < 4000; i++) c[muestrear(p, 1, g.next())]++;
+      r.push(t("Con T = 1, las frecuencias se parecen a [0.1, 0.6, 0.3]", Math.abs(c[0] / 4000 - 0.1) < 0.03 && Math.abs(c[1] / 4000 - 0.6) < 0.03, "Frecuencias observadas: " + fmt(c.map((x) => x / 4000))));
+      return r;
+    },
+    outro: `Esta es literalmente la última línea de <code>GPT.generate</code> en la guía de la Semana 5. La pérdida contra la cota es la prueba de corrección de la Semana 3: tu GPT de 335 mil parámetros llega a 0,232 frente a 0,203.`,
+  },
+  {
+    id: "difusion", num: 8, title: "Difusión", week: "Semana 7", minutes: 20, widget: "difusion",
+    intro: `<p>Un modelo de difusión aprende a <b>quitar ruido</b>. Primero se define un proceso que destruye los datos añadiendo ruido gaussiano poco a poco. Gracias a una fórmula cerrada, se salta a cualquier paso t directamente:</p>
+      <p class="formula">xₜ = √ᾱₜ · x₀ + √(1 − ᾱₜ) · ε &nbsp;&nbsp; con ᾱₜ = ∏ (1 − βₛ)</p>
+      <p>Una red aprende a predecir el ruido ε en cada nivel. Para generar, se parte de ruido puro y se retrocede paso a paso.</p>`,
+    widgetTitle: "Destruir y reconstruir una espiral",
+    widgetNote: "Arrastra t para ver cómo el ruido borra la forma. Con «Generar» el proceso inverso parte de ruido y lo ordena. Aquí usamos el denoiser ideal (exacto para este conjunto de puntos); una red neuronal lo aproxima y generaliza.",
+    taskIntro: `<p>Implementa las dos piezas matemáticas del proceso directo: el calendario acumulado <code>ᾱ</code> y el paso de ruidado. El reto usa el mismo calendario que <code>ddpm_2d.py</code> en la guía.</p>`,
+    code: `// betas: arreglo de varianzas. Devuelve ᾱ_t = producto de (1 − β_s) hasta t
+function alphaBarra(betas) {
+  return betas.map(() => 1);
+}
+// x_t = √ᾱ · x0 + √(1 − ᾱ) · ε
+function ruidar(x0, abT, eps) {
+  return x0;
+}
+const betas = linspace(1e-4, 0.06, 200);
+const ab = alphaBarra(betas);
+print('ᾱ al final:', ab[199], '(en la guía ≈ 0.0022)');
+print('ruidar(1, 0.25, 2) =', ruidar(1, 0.25, 2), '(esperado ≈ 2.2320)');
+plot({ type: 'line', title: 'ᾱ_t y 1 − ᾱ_t', series: [{ name: 'ᾱ', y: ab }, { name: '1 − ᾱ', y: ab.map(a => 1 - a) }] });`,
+    solution: `function alphaBarra(betas) {
+  let p = 1;
+  return betas.map((b) => (p *= 1 - b));
+}
+function ruidar(x0, abT, eps) {
+  return Math.sqrt(abT) * x0 + Math.sqrt(1 - abT) * eps;
+}
+const betas = linspace(1e-4, 0.06, 200);
+const ab = alphaBarra(betas);
+print('ᾱ al final:', ab[199], '(en la guía ≈ 0.0022)');
+print('ruidar(1, 0.25, 2) =', ruidar(1, 0.25, 2), '(esperado ≈ 2.2320)');
+plot({ type: 'line', title: 'ᾱ_t y 1 − ᾱ_t', series: [{ name: 'ᾱ', y: ab }, { name: '1 − ᾱ', y: ab.map(a => 1 - a) }] });`,
+    hints: ["Mantén un acumulador p que empieza en 1 y se multiplica por (1 − β) en cada elemento.", "ruidar: Math.sqrt(abT) * x0 + Math.sqrt(1 - abT) * eps.", "ᾱ_T debe quedar muy cerca de 0: al final solo queda ruido."],
+    check: function () {
+      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
+      if (typeof alphaBarra !== "function" || typeof ruidar !== "function") return [t("Existen alphaBarra y ruidar", false, "Define ambas funciones.")];
+      const betas = linspace(1e-4, 0.06, 200), ab = alphaBarra(betas), r = [];
+      r.push(t("ᾱ₁ = 1 − β₁", Math.abs(ab[0] - (1 - 1e-4)) < 1e-12, "ab[0] = " + fmt(ab[0])));
+      r.push(t("ᾱ decrece y ᾱ_T ≈ 0.00217", ab.every((a, i) => i === 0 || a < ab[i - 1]) && Math.abs(ab[199] - 0.002167) < 2e-5, "ab[199] = " + fmt(ab[199])));
+      r.push(t("ruidar(1, 0.25, 2) ≈ 2.23205", Math.abs(ruidar(1, 0.25, 2) - 2.2320508) < 1e-6, "Obtuviste " + fmt(ruidar(1, 0.25, 2))));
+      const g = rng(7), n = 20000, a = ab[99], xs = [];
+      for (let i = 0; i < n; i++) xs.push(ruidar(0.7, a, g.normal()));
+      r.push(t("Media = √ᾱ·x₀ y varianza = 1 − ᾱ", Math.abs(mean(xs) - Math.sqrt(a) * 0.7) < 0.02 && Math.abs(std(xs) ** 2 - (1 - a)) < 0.03, "Media " + fmt(mean(xs)) + ", varianza " + fmt(std(xs) ** 2) + "; esperadas " + fmt(Math.sqrt(a) * 0.7) + " y " + fmt(1 - a)));
+      return r;
+    },
+    outro: `En la guía de la <b>Semana 7</b> entrenas una red que predice ε y muestreas con DDPM y DDIM sobre esta misma espiral y sobre imágenes. Lo que ves aquí con el denoiser ideal es lo que esa red aprende a aproximar.`,
+  },
+];
+
+/* Lecciones previstas: aparecen como «próximamente» hasta que se publiquen. */
+const PROXIMAS = [
+  { title: "Un GPT completo", week: "Semana 5", note: "BPE, bloque Transformer, entrenamiento y generación en el navegador" },
+  { title: "VAE y GAN", week: "Semana 6", note: "Espacio latente, ELBO y colapso de modos" },
+  { title: "LoRA y DPO", week: "Semana 8", note: "Adaptar un modelo congelado y alinearlo con preferencias" },
+];
+if (typeof module !== "undefined") module.exports = { LESSONS, PROXIMAS };
+
+</script>
+<script>
+/* Laboratorio Neuronal: aplicación. Depende de kernel.js (kernelLib) y lessons.js (LESSONS, PROXIMAS). */
+(function () {
+  "use strict";
+  const L = {}; kernelLib(L);   // biblioteca para los widgets (hilo principal)
+
+  // ============================================================ utilidades
+  function h(tag, attrs, ...kids) {
+    const e = document.createElement(tag);
+    for (const k in attrs || {}) {
+      const v = attrs[k];
+      if (v === false || v == null) continue;
+      if (k === "class") e.className = v; else if (k === "html") e.innerHTML = v; else if (k.startsWith("on")) e.addEventListener(k.slice(2), v); else e.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) e.append(c.nodeType ? c : document.createTextNode(String(c)));
+    return e;
+  }
+  const $ = (s, r = document) => r.querySelector(s);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("ln:" + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("ln:" + k, JSON.stringify(v)); } catch (e) { /* sin almacenamiento */ } },
+    del(k) { try { localStorage.removeItem("ln:" + k); } catch (e) { /* nada */ } },
+  };
+  const fmtN = (x, p = 3) => (Number.isFinite(x) ? (Math.abs(x) >= 1e5 || (Math.abs(x) < 1e-3 && x !== 0) ? x.toExponential(2) : String(parseFloat(x.toPrecision(p)))) : String(x));
+  const rgb = (c) => { c = c.trim(); if (c[0] === "#") { if (c.length === 4) c = "#" + [...c.slice(1)].map((x) => x + x).join(""); return [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)); } const m = c.match(/[\d.]+/g); return m ? m.slice(0, 3).map(Number) : [0, 0, 0]; };
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const rgbs = (a, al = 1) => `rgba(${a[0]},${a[1]},${a[2]},${al})`;
+
+  // ---- registro de dibujos que se repintan al cambiar tema o tamaño
+  const drawables = new Set();
+  function reg(el, draw) { const o = { el, draw }; drawables.add(o); draw(); return o; }
+  function redrawAll() { for (const o of [...drawables]) { if (!o.el.isConnected) { drawables.delete(o); continue; } try { o.draw(); } catch (e) { /* ignorar */ } } }
+  let rz = 0; window.addEventListener("resize", () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(redrawAll); });
+  new MutationObserver(() => redrawAll()).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => setTimeout(redrawAll, 50)); } catch (e) { /* nada */ }
+
+  function fit(cv, w, hgt) {
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(w * d); cv.height = Math.round(hgt * d); cv.style.width = w + "px"; cv.style.height = hgt + "px";
+    const g = cv.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); return g;
+  }
+  function theme() { return { ink: css("--ink"), muted: css("--muted"), line: css("--line"), surface: css("--surface"), surface2: css("--surface2"), accent: css("--accent"), cls: [css("--c1"), css("--c2"), css("--c3"), css("--c4")] }; }
+  function niceTicks(a, b, n = 5) {
+    const span = b - a || 1, step0 = span / n, mag = 10 ** Math.floor(Math.log10(step0)), r = step0 / mag, step = (r < 1.5 ? 1 : r < 3 ? 2 : r < 7 ? 5 : 10) * mag, out = [];
+    for (let v = Math.ceil(a / step) * step; v <= b + step * 1e-6; v += step) out.push(+v.toFixed(12));
+    return out;
+  }
+  const FONT = '11px "Inter", system-ui, sans-serif';
+
+  // ============================================================ gráficos
+  function drawLine(g, W, H, spec, T) {
+    const m = { l: 48, r: 14, t: spec.title ? 30 : 12, b: 28 }, pw = W - m.l - m.r, ph = H - m.t - m.b, log = !!spec.ylog;
+    const all = spec.series.flatMap((s) => s.y).filter((v) => Number.isFinite(v));
+    const tf = (v) => (log ? Math.log10(Math.max(v, 1e-30)) : v);
+    let lo = Math.min(...all.map(tf)), hi = Math.max(...all.map(tf));
+    if (log) { lo = Math.floor(lo); hi = Math.ceil(hi); if (hi === lo) hi = lo + 1; } else { const pd = (hi - lo || 1) * 0.08; lo -= pd; hi += pd; }
+    const n = Math.max(...spec.series.map((s) => s.y.length));
+    const X = (i) => m.l + (pw * i) / Math.max(1, n - 1), Y = (v) => m.t + ph - ((tf(v) - lo) / (hi - lo)) * ph;
+    g.font = FONT; g.textBaseline = "middle"; g.fillStyle = T.muted; g.strokeStyle = T.line; g.lineWidth = 1;
+    const ticks = log ? (() => { const out = [], st = Math.max(1, Math.ceil((hi - lo) / 6)); for (let p = lo; p <= hi; p += st) out.push(p); return out; })() : niceTicks(lo, hi, 5);
+    g.textAlign = "right";
+    for (const tk of ticks) { const y = m.t + ph - ((tk - lo) / (hi - lo)) * ph; g.beginPath(); g.moveTo(m.l, y); g.lineTo(m.l + pw, y); g.stroke(); g.fillText(log ? "1e" + tk : fmtN(tk, 3), m.l - 6, y); }
+    g.textAlign = "center"; g.textBaseline = "top";
+    for (const tk of niceTicks(0, n - 1, 6)) g.fillText(String(Math.round(tk) + (spec.x1 ? 1 : 0)), X(tk), m.t + ph + 6);
+    spec.series.forEach((s, k) => {
+      g.strokeStyle = T.cls[k % 4]; g.lineWidth = 2.2; g.beginPath();
+      s.y.forEach((v, i) => { const x = X(i), y = Y(v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    });
+    g.textAlign = "left"; g.textBaseline = "middle";
+    if (spec.title) { g.fillStyle = T.ink; g.font = '600 12px "Inter", system-ui, sans-serif'; g.fillText(spec.title, m.l, 12); }
+    let lx = W - m.r; g.font = FONT; g.textAlign = "right";
+    for (let k = spec.series.length - 1; k >= 0; k--) { const nm = spec.series[k].name || "serie " + (k + 1), w = g.measureText(nm).width; g.fillStyle = T.muted; g.fillText(nm, lx, 12); g.fillStyle = T.cls[k % 4]; g.fillRect(lx - w - 16, 9, 10, 6); lx -= w + 28; }
+  }
+  function drawBar(g, W, H, spec, T) {
+    const m = { l: 128, r: 54, t: spec.title ? 28 : 10, b: 22 }, pw = W - m.l - m.r, n = spec.categories.length, bh = (H - m.t - m.b) / n;
+    const mx = Math.max(...spec.values, spec.ref ? spec.ref.value : 0) * 1.05;
+    g.font = FONT; g.textBaseline = "middle";
+    if (spec.title) { g.fillStyle = T.ink; g.font = '600 12px "Inter", system-ui, sans-serif'; g.textAlign = "left"; g.fillText(spec.title, 8, 12); g.font = FONT; }
+    spec.categories.forEach((c, i) => {
+      const y = m.t + i * bh, w = (spec.values[i] / mx) * pw, hot = spec.highlight === i;
+      g.fillStyle = T.muted; g.textAlign = "right"; g.fillText(c, m.l - 8, y + bh / 2);
+      g.fillStyle = hot ? T.cls[1] : T.cls[0]; g.globalAlpha = hot ? 1 : 0.85; g.beginPath(); g.roundRect(m.l, y + bh * 0.18, Math.max(w, 2), bh * 0.64, 4); g.fill(); g.globalAlpha = 1;
+      g.fillStyle = T.ink; g.textAlign = "left"; g.fillText(fmtN(spec.values[i], 3), m.l + w + 6, y + bh / 2);
+    });
+    if (spec.ref) {
+      const x = m.l + (spec.ref.value / mx) * pw; g.strokeStyle = T.cls[2]; g.lineWidth = 2; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(x, m.t - 2); g.lineTo(x, H - m.b + 2); g.stroke(); g.setLineDash([]);
+      g.fillStyle = T.cls[2]; g.textAlign = "left"; g.fillText(spec.ref.label, Math.min(x + 6, W - 150), H - 8);
+    }
+  }
+  function drawScatter(g, W, H, spec, T) {
+    const m = { l: 36, r: 12, t: spec.title ? 28 : 10, b: 24 }, pw = W - m.l - m.r, ph = H - m.t - m.b, xs = spec.points.map((p) => p[0]), ys = spec.points.map((p) => p[1]);
+    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+    g.font = FONT; g.fillStyle = T.muted; g.textAlign = "right"; g.textBaseline = "middle";
+    for (const tk of niceTicks(y0, y1, 4)) g.fillText(fmtN(tk, 2), m.l - 6, m.t + ph - ((tk - y0) / (y1 - y0 || 1)) * ph);
+    g.textAlign = "center"; for (const tk of niceTicks(x0, x1, 5)) g.fillText(fmtN(tk, 2), m.l + ((tk - x0) / (x1 - x0 || 1)) * pw, H - 10);
+    if (spec.title) { g.fillStyle = T.ink; g.textAlign = "left"; g.font = '600 12px "Inter", system-ui, sans-serif'; g.fillText(spec.title, m.l, 12); }
+    for (const p of spec.points) { g.fillStyle = T.cls[(p[2] || 0) % 4]; g.beginPath(); g.arc(m.l + ((p[0] - x0) / (x1 - x0 || 1)) * pw, m.t + ph - ((p[1] - y0) / (y1 - y0 || 1)) * ph, 3.2, 0, 7); g.fill(); }
+  }
+  function drawHeat(g, W, H, spec, T) {
+    const M = spec.matrix, r = M.length, c = M[0].length, ml = spec.ylabels ? 64 : 24, mt = (spec.title ? 26 : 8) + (spec.xlabels ? 18 : 0), cw = (W - ml - 10) / c, ch = (H - mt - 10) / r;
+    const flat = M.flat(), lo = spec.min ?? Math.min(...flat), hi = spec.max ?? Math.max(...flat), A = rgb(T.surface2), B = rgb(T.accent);
+    g.font = FONT; g.textBaseline = "middle";
+    if (spec.title) { g.fillStyle = T.ink; g.textAlign = "left"; g.font = '600 12px "Inter", system-ui, sans-serif'; g.fillText(spec.title, 8, 12); g.font = FONT; }
+    for (let i = 0; i < r; i++) for (let j = 0; j < c; j++) {
+      const t = hi === lo ? 0 : (M[i][j] - lo) / (hi - lo); g.fillStyle = rgbs(mix(A, B, Math.max(0, Math.min(1, t)))); g.fillRect(ml + j * cw + 1, mt + i * ch + 1, cw - 2, ch - 2);
+      if (r <= 8 && c <= 8 && cw > 30) { g.fillStyle = t > 0.55 ? T.surface : T.ink; g.textAlign = "center"; g.fillText(M[i][j].toFixed(2), ml + j * cw + cw / 2, mt + i * ch + ch / 2); }
+    }
+    g.fillStyle = T.muted;
+    if (spec.ylabels) { g.textAlign = "right"; spec.ylabels.forEach((s, i) => g.fillText(s.length > 9 ? s.slice(0, 8) + "…" : s, ml - 6, mt + i * ch + ch / 2)); }
+    if (spec.xlabels) { g.textAlign = "center"; spec.xlabels.forEach((s, j) => g.fillText(s.length > 9 ? s.slice(0, 8) + "…" : s, ml + j * cw + cw / 2, mt - 9)); }
+  }
+  function drawBoundary(g, W, H, spec, T) {
+    const m = { l: 6, r: 6, t: spec.title ? 26 : 6, b: 6 }, pw = W - m.l - m.r, ph = H - m.t - m.b, res = spec.res, [x0, x1, y0, y1] = spec.bounds, cw = pw / res, ch = ph / res;
+    for (let j = 0; j < res; j++) for (let i = 0; i < res; i++) { g.fillStyle = rgbs(rgb(T.cls[spec.grid[j * res + i] % 4]), 0.26); g.fillRect(m.l + i * cw, m.t + j * ch, cw + 0.6, ch + 0.6); }
+    for (const p of spec.points) { g.fillStyle = T.cls[p[2] % 4]; g.strokeStyle = T.surface; g.lineWidth = 1.2; g.beginPath(); g.arc(m.l + ((p[0] - x0) / (x1 - x0)) * pw, m.t + ((y1 - p[1]) / (y1 - y0)) * ph, 3, 0, 7); g.fill(); g.stroke(); }
+    if (spec.title) { g.fillStyle = T.ink; g.font = '600 12px "Inter", system-ui, sans-serif'; g.textAlign = "left"; g.textBaseline = "middle"; g.fillText(spec.title, 6, 12); }
+  }
+  function renderPlot(spec, host, width) {
+    const cv = h("canvas", { role: "img", "aria-label": spec.title || "gráfico" }); host.append(cv);
+    const kind = spec.type || "line";
+    reg(cv, () => {
+      const w = Math.max(220, Math.min(width || 560, (host.clientWidth || 560) - 4)), hh = kind === "bar" ? Math.max(120, 38 * spec.categories.length + 44) : kind === "heat" ? Math.round(Math.min(w, 300) * (spec.matrix.length / Math.max(spec.matrix[0].length, 1)) * 0.8 + 60) : kind === "boundary" || kind === "scatter" ? Math.round(w * 0.78) : Math.round(w * 0.5);
+      const g = fit(cv, w, Math.min(Math.max(hh, 160), 420)), T = theme(), Wp = w, Hp = Math.min(Math.max(hh, 160), 420);
+      g.clearRect(0, 0, Wp, Hp);
+      ({ line: drawLine, bar: drawBar, scatter: drawScatter, heat: drawHeat, boundary: drawBoundary }[kind] || drawLine)(g, Wp, Hp, spec, T);
+    });
+    return cv;
+  }
+
+  // ============================================================ kernel
+  class Kernel {
+    constructor() { this.seq = 0; this.q = Promise.resolve(); this.cur = null; this.busyCb = () => {}; this.mode = "worker"; this.ready = this.boot(); }
+    boot() {
+      return new Promise((resolve) => {
+        const fallback = () => { if (this.mode === "main" && this._ok) return; this.mode = "main"; try { if (this.w) this.w.terminate(); } catch (e) { /* */ } L2(); this._ok = true; resolve(); };
+        const L2 = () => { window.__emit = (m) => this.onMsg(m); kernelLib(window); };
+        try {
+          const src = "self.__emit=function(m){postMessage(m)};(" + kernelLib.toString() + ")(self);onmessage=function(e){self.__handle(e.data)};";
+          this.url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
+          this.w = new Worker(this.url);
+          let done = false;
+          this.w.onerror = () => { if (!done) { done = true; fallback(); } };
+          this.w.onmessage = (e) => { if (!done && e.data && e.data.type === "result" && e.data.id === 0) { done = true; this._ok = true; clearTimeout(tm); resolve(); } else this.onMsg(e.data); };
+          const tm = setTimeout(() => { if (!done) { done = true; fallback(); } }, 2500);
+          this.w.postMessage({ type: "run", id: 0, code: "1" });
+        } catch (e) { fallback(); }
+      });
+    }
+    restart() { try { this.w && this.w.terminate(); } catch (e) { /* */ } this._ok = false; this.cur = null; this.ready = this.boot(); }
+    onMsg(m) {
+      if (m.type === "log" || m.type === "plot") { if (this.cur && this.cur.sink) this.cur.sink(m); return; }
+      if (this.cur && m.id === this.cur.id) { clearTimeout(this.cur.timer); const c = this.cur; this.cur = null; this.busyCb(false); c.resolve(m); }
+    }
+    enqueue(msg, sink) {
+      const p = this.q.then(async () => {
+        await this.ready;
+        return new Promise((resolve) => {
+          const id = ++this.seq; msg.id = id; this.busyCb(true);
+          const c = { id, sink, resolve };
+          if (this.mode === "worker") c.timer = setTimeout(() => {
+            this.restart(); this.busyCb(false);
+            resolve({ ok: false, error: "Tiempo agotado (8 s). ¿Hay un bucle infinito? Reinicié el kernel, así que las variables anteriores se perdieron.", results: [{ name: "Ejecución", ok: false, msg: "El código tardó más de 8 s y se detuvo." }], timeout: true });
+          }, 8000);
+          this.cur = c;
+          if (this.mode === "worker") this.w.postMessage(msg); else window.__handle(msg);
+        });
+      });
+      this.q = p.catch(() => {}); return p;
+    }
+    run(code, sink) { return this.enqueue({ type: "run", code }, sink); }
+    check(fn) { return this.enqueue({ type: "check", code: fn.toString() }); }
+    reset() { this.restart(); }
+  }
+  const kernel = new Kernel();
+
+  // ============================================================ editor con resaltado
+  const KW = /^(function|return|const|let|var|if|else|for|while|of|in|new|class|true|false|null|undefined|break|continue|typeof|instanceof|throw|try|catch|async|await)$/;
+  const LIBN = /^(print|plot|plotBoundary|Value|V|MLP|Math|randn|matmul|transpose|zeros|softmax|dot|argmax|range|linspace|sum|mean|std|rng|moons|spirals|xorData|gradcheck|ayuda)$/;
+  const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  function highlight(src) {
+    const re = /(\/\/[^\n]*)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index)); last = re.lastIndex;
+      if (m[1]) out += '<span class="tk-c">' + esc(m[1]) + "</span>";
+      else if (m[2]) out += '<span class="tk-s">' + esc(m[2]) + "</span>";
+      else if (m[3]) out += '<span class="tk-n">' + m[3] + "</span>";
+      else if (KW.test(m[4])) out += '<span class="tk-k">' + m[4] + "</span>";
+      else if (LIBN.test(m[4])) out += '<span class="tk-f">' + m[4] + "</span>";
+      else out += esc(m[4]);
+    }
+    return out + esc(src.slice(last));
+  }
+  function makeEditor(initial, { onChange, onRun, label } = {}) {
+    const pre = h("pre", { "aria-hidden": "true" }), ta = h("textarea", { spellcheck: "false", autocapitalize: "off", autocomplete: "off", autocorrect: "off", "aria-label": label || "Editor de código", rows: 6 });
+    const wrap = h("div", { class: "editor" }, pre, ta);
+    const sync = () => { pre.innerHTML = highlight(ta.value) + "\n"; ta.style.height = "auto"; ta.style.height = Math.max(120, ta.scrollHeight + 2) + "px"; pre.scrollLeft = ta.scrollLeft; };
+    ta.value = initial; sync();
+    requestAnimationFrame(() => { sync(); setTimeout(sync, 120); });          // se mide de nuevo ya insertado en la página
+    try { document.fonts.ready.then(sync); } catch (e) { /* sin API de fuentes */ }
+    reg(wrap, sync);
+    ta.addEventListener("input", () => { sync(); onChange && onChange(ta.value); });
+    ta.addEventListener("scroll", () => { pre.scrollLeft = ta.scrollLeft; });
+    ta.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); onRun && onRun(); return; }
+      const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
+      if (e.key === "Tab") { e.preventDefault(); ta.setRangeText("  ", s, en, "end"); ta.dispatchEvent(new Event("input")); }
+      else if (e.key === "Enter") {
+        e.preventDefault(); const ls = v.lastIndexOf("\n", s - 1) + 1, ind = (v.slice(ls, s).match(/^\s*/) || [""])[0], extra = /[{(\[]\s*$/.test(v.slice(ls, s)) ? "  " : "";
+        ta.setRangeText("\n" + ind + extra, s, en, "end"); ta.dispatchEvent(new Event("input"));
+      }
+    });
+    return { el: wrap, get value() { return ta.value; }, set value(x) { ta.value = x; sync(); }, focus() { ta.focus(); } };
+  }
+
+  // ============================================================ salida de celdas y consola
+  function addLine(host, text, cls) { const e = h("div", { class: "ln " + (cls || "") }, text); host.append(e); host.scrollTop = host.scrollHeight; return e; }
+  function sinkFor(host) { return (m) => { if (m.type === "log") addLine(host, m.text); else if (m.type === "plot") { try { renderPlot(m.spec, host, 560); } catch (e) { addLine(host, "No se pudo dibujar el gráfico: " + e.message, "err"); } } }; }
+  async function execute(code, host) {
+    host.replaceChildren();
+    const r = await kernel.run(code, sinkFor(host));
+    if (!r.ok) addLine(host, r.error, "err"); else if (r.has) addLine(host, "← " + r.value, "res");
+    return r;
+  }
+
+  // ============================================================ progreso
+  const state = { done: store.get("done", {}), current: null };
+  const saveDone = () => store.set("done", state.done);
+  const isDone = (id) => !!state.done[id];
+  const unlocked = (i) => i === 0 || isDone(LESSONS[i - 1].id);
+
+  function makeCell(lesson, onPass) {
+    const key = "code:" + lesson.id, saved = store.get(key, null);
+    const out = h("div", { class: "out", "aria-live": "polite" }), tests = h("div", { class: "tests" }), win = h("div", { class: "win", hidden: true }), tag = h("span", { class: "tag" }, "Código · JavaScript");
+    const ed = makeEditor(saved ?? lesson.code, { onChange: (v) => store.set(key, v), onRun: () => run(), label: "Editor de la lección " + lesson.num });
+    let fails = 0;
+    const btnRun = h("button", { class: "btn primary", onclick: () => run(), title: "Ctrl/Cmd + Enter" }, "▶ Ejecutar");
+    const btnCheck = h("button", { class: "btn good", onclick: () => check() }, "✓ Comprobar reto");
+    const btnReset = h("button", { class: "btn small", onclick: () => { ed.value = lesson.code; store.del(key); out.replaceChildren(); tests.replaceChildren(); win.hidden = true; } }, "Restablecer");
+    const skip = h("button", { class: "btn small", hidden: true, onclick: () => { state.done[lesson.id] = state.done[lesson.id] || "saltado"; saveDone(); onPass("saltado"); } }, "Saltar este reto");
+    async function run() { btnRun.disabled = true; try { return await execute(ed.value, out); } finally { btnRun.disabled = false; } }
+    async function check() {
+      btnCheck.disabled = true; tests.replaceChildren(h("div", { class: "test" }, h("span"), "Comprobando…"));
+      try {
+        const r = await run(); if (r.timeout) { tests.replaceChildren(); return; }
+        if (!r.ok) { tests.replaceChildren(h("div", { class: "test no" }, h("span", { class: "ic" }, "✕"), h("div", null, "Tu código tiene un error. Corrígelo y vuelve a comprobar."))); fails++; skip.hidden = fails < 2; return; }
+        const c = await kernel.check(lesson.check), res = c.results || [];
+        tests.replaceChildren(...res.map((t) => h("div", { class: "test " + (t.ok ? "ok" : "no") }, h("span", { class: "ic" }, t.ok ? "✓" : "✕"), h("div", null, t.name, t.ok ? null : h("small", null, t.msg)))));
+        if (res.length && res.every((t) => t.ok)) { win.hidden = false; win.textContent = "Reto superado. " + res.length + " de " + res.length + " comprobaciones correctas."; if (state.done[lesson.id] !== "pasado") { state.done[lesson.id] = "pasado"; saveDone(); } onPass("pasado"); }
+        else { win.hidden = true; fails++; skip.hidden = fails < 2; }
+      } finally { btnCheck.disabled = false; }
+    }
+    const aid = h("details", { class: "aid" }, h("summary", null, "Pistas y solución"),
+      h("ol", null, lesson.hints.map((t) => h("li", null, t))),
+      h("details", { style: "margin-top:10px" }, h("summary", { style: "font-weight:600;font-size:13px" }, "Ver solución completa"), h("pre", null, lesson.solution), h("button", { class: "btn small", style: "margin-top:8px", onclick: () => { ed.value = lesson.solution; store.set(key, lesson.solution); } }, "Copiar al editor")));
+    const el = h("div", { class: "cell" }, h("div", { class: "cell-bar" }, tag, h("span", { class: "sp" }), btnReset, skip, btnRun, btnCheck), ed.el, out, tests, win, aid);
+    return el;
+  }
+
+  // ============================================================ widgets
+  const widgets = {};
+  function slider(label, min, max, step, value, onInput, fmtv) {
+    const out = h("output", null, fmtv ? fmtv(value) : fmtN(value)), inp = h("input", { type: "range", min, max, step, value, "aria-label": label });
+    inp.addEventListener("input", () => { out.textContent = fmtv ? fmtv(+inp.value) : fmtN(+inp.value); onInput(+inp.value); });
+    return { el: h("div", { class: "ctl" }, h("label", null, label, out), inp), set(v) { inp.value = v; out.textContent = fmtv ? fmtv(v) : fmtN(v); } };
+  }
+  function select(label, opts, value, onChange) {
+    const s = h("select", { "aria-label": label }, opts.map(([v, t]) => h("option", { value: v, selected: v === value }, t)));
+    s.addEventListener("change", () => onChange(s.value)); return h("div", { class: "ctl" }, h("span", { class: "lbl" }, label), s);
+  }
+
+  // ---- 1. neurona
+  widgets.neurona = (el) => {
+    const st = { w1: 1.6, w2: 1.0, b: -0.4, act: "tanh", px: 0.9, py: -0.5 };
+    const A = { tanh: [Math.tanh, (y) => (y + 1) / 2], sigmoide: [(z) => 1 / (1 + Math.exp(-z)), (y) => y], relu: [(z) => Math.max(0, z), (y) => Math.min(y / 2, 1)], escalón: [(z) => (z > 0 ? 1 : 0), (y) => y] };
+    const cv = h("canvas", { role: "img", "aria-label": "Mapa de la salida de la neurona" }), ro = h("div", { class: "readout" });
+    const ctl = h("div", { class: "controls" }, slider("peso w₁", -4, 4, 0.1, st.w1, (v) => { st.w1 = v; draw(); }).el, slider("peso w₂", -4, 4, 0.1, st.w2, (v) => { st.w2 = v; draw(); }).el, slider("sesgo b", -3, 3, 0.1, st.b, (v) => { st.b = v; draw(); }).el, select("activación φ", Object.keys(A).map((k) => [k, k]), st.act, (v) => { st.act = v; draw(); }));
+    el.append(h("div", { class: "widget cols" }, ctl, h("div", { class: "canvas-wrap" }, cv, h("div", { style: "height:10px" }), ro)));
+    const small = document.createElement("canvas"); small.width = small.height = 72;
+    const toX = (px, S) => ((px + 2) / 4) * S, toY = (py, S) => ((2 - py) / 4) * S;
+    function draw() {
+      const S = Math.max(220, Math.min(380, (cv.parentElement.clientWidth || 380))), g = fit(cv, S, S), T = theme(), [f, nrm] = A[st.act], lo = rgb(T.cls[0]), hi = rgb(T.cls[1]);
+      const sg = small.getContext("2d"), im = sg.createImageData(72, 72);
+      for (let j = 0; j < 72; j++) for (let i = 0; i < 72; i++) { const x1 = -2 + (4 * (i + 0.5)) / 72, x2 = 2 - (4 * (j + 0.5)) / 72, c = mix(lo, hi, Math.max(0, Math.min(1, nrm(f(st.w1 * x1 + st.w2 * x2 + st.b))))); const k = (j * 72 + i) * 4; im.data[k] = c[0]; im.data[k + 1] = c[1]; im.data[k + 2] = c[2]; im.data[k + 3] = 235; }
+      sg.putImageData(im, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(small, 0, 0, S, S);
+      g.strokeStyle = T.line; g.lineWidth = 1; g.beginPath(); g.moveTo(S / 2, 0); g.lineTo(S / 2, S); g.moveTo(0, S / 2); g.lineTo(S, S / 2); g.stroke();
+      g.fillStyle = T.ink; g.font = FONT; g.textAlign = "left"; g.fillText("x₂", S / 2 + 6, 12); g.textAlign = "right"; g.fillText("x₁", S - 6, S / 2 - 6);
+      g.strokeStyle = T.ink; g.lineWidth = 2; g.setLineDash([6, 5]); g.beginPath();
+      if (Math.abs(st.w2) > 1e-6) { g.moveTo(0, toY(-(st.w1 * -2 + st.b) / st.w2, S)); g.lineTo(S, toY(-(st.w1 * 2 + st.b) / st.w2, S)); } else if (Math.abs(st.w1) > 1e-6) { const x = -st.b / st.w1; g.moveTo(toX(x, S), 0); g.lineTo(toX(x, S), S); }
+      g.stroke(); g.setLineDash([]);
+      g.fillStyle = T.surface; g.strokeStyle = T.ink; g.lineWidth = 2; g.beginPath(); g.arc(toX(st.px, S), toY(st.py, S), 6, 0, 7); g.fill(); g.stroke();
+      const z = st.w1 * st.px + st.w2 * st.py + st.b, y = f(z);
+      ro.innerHTML = `punto (x₁, x₂) = (<b>${st.px.toFixed(2)}</b>, <b>${st.py.toFixed(2)}</b>)<br>z = w₁x₁ + w₂x₂ + b = <b>${z.toFixed(3)}</b><br>y = ${st.act}(z) = <b>${y.toFixed(3)}</b><br><span style="color:var(--muted)">línea discontinua: z = 0 (donde cambia de lado)</span>`;
+    }
+    cv.addEventListener("click", (e) => { const r = cv.getBoundingClientRect(); st.px = -2 + (4 * (e.clientX - r.left)) / r.width; st.py = 2 - (4 * (e.clientY - r.top)) / r.height; draw(); });
+    reg(cv, draw);
+  };
+
+  // ---- 2. gradiente
+  widgets.gradiente = (el) => {
+    const f = (x) => 0.05 * x ** 4 - 0.6 * x * x + 0.3 * x, df = (x) => 0.2 * x ** 3 - 1.2 * x + 0.3;
+    const st = { x0: 3, lr: 0.1, x: 3, path: [3], run: null, msg: "" };
+    const cv = h("canvas", { role: "img", "aria-label": "Curva de pérdida con la bola que desciende" }), stats = h("div", { class: "stats" });
+    const sx = slider("punto de partida x₀", -3.8, 3.8, 0.1, st.x0, (v) => { st.x0 = v; reset(); }), sl = slider("tasa de aprendizaje η", 0.01, 1.2, 0.01, st.lr, (v) => { st.lr = v; }, (v) => v.toFixed(2));
+    const step = () => { st.x = st.x - st.lr * df(st.x); st.path.push(st.x); if (!Number.isFinite(st.x) || Math.abs(st.x) > 6) { st.msg = "Se salió de la zona: la tasa es demasiado grande y el descenso diverge."; stop(); } draw(); };
+    function stop() { clearInterval(st.run); st.run = null; bRun.textContent = "▶ Ejecutar"; }
+    function reset() { stop(); st.x = st.x0; st.path = [st.x0]; st.msg = ""; draw(); }
+    const bStep = h("button", { class: "btn", onclick: step }, "Paso"), bRun = h("button", { class: "btn primary", onclick: () => { if (st.run) return stop(); st.msg = ""; bRun.textContent = "❚❚ Pausa"; st.run = setInterval(() => { if (st.path.length > 80) return stop(); step(); }, 110); } }, "▶ Ejecutar"), bReset = h("button", { class: "btn", onclick: reset }, "Reiniciar");
+    el.append(h("div", { class: "widget cols" }, h("div", { class: "controls" }, sx.el, sl.el, h("div", { class: "btn-row" }, bStep, bRun, bReset), stats), h("div", { class: "canvas-wrap" }, cv)));
+    function draw() {
+      const W = Math.max(240, Math.min(540, cv.parentElement.clientWidth || 540)), H = Math.round(W * 0.62), g = fit(cv, W, H), T = theme(), m = { l: 34, r: 12, t: 12, b: 24 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+      const X = (x) => m.l + ((x + 4) / 8) * pw, Y = (y) => m.t + ph - ((y + 3.2) / 8.6) * ph;
+      g.clearRect(0, 0, W, H); g.font = FONT; g.fillStyle = T.muted; g.strokeStyle = T.line; g.lineWidth = 1; g.textAlign = "center";
+      for (const t of [-4, -2, 0, 2, 4]) { g.beginPath(); g.moveTo(X(t), m.t); g.lineTo(X(t), m.t + ph); g.stroke(); g.fillText(String(t), X(t), H - 8); }
+      g.textAlign = "right"; for (const t of [-2, 0, 2, 4]) { g.beginPath(); g.moveTo(m.l, Y(t)); g.lineTo(m.l + pw, Y(t)); g.stroke(); g.fillText(String(t), m.l - 6, Y(t) + 4); }
+      g.strokeStyle = T.cls[0]; g.lineWidth = 2.5; g.beginPath(); for (let i = 0; i <= 160; i++) { const x = -4 + (8 * i) / 160; i ? g.lineTo(X(x), Y(f(x))) : g.moveTo(X(x), Y(f(x))); } g.stroke();
+      g.fillStyle = rgbs(rgb(T.cls[1]), 0.6); for (const p of st.path.slice(0, -1)) { if (Math.abs(p) <= 4) { g.beginPath(); g.arc(X(p), Y(f(p)), 3, 0, 7); g.fill(); } }
+      const x = Math.max(-4, Math.min(4, st.x)), y = f(x), sl = df(x);
+      g.strokeStyle = T.cls[1]; g.lineWidth = 1.6; g.beginPath(); g.moveTo(X(x - 1), Y(y - sl)); g.lineTo(X(x + 1), Y(y + sl)); g.stroke();
+      g.fillStyle = T.cls[1]; g.strokeStyle = T.surface; g.lineWidth = 2; g.beginPath(); g.arc(X(x), Y(y), 7, 0, 7); g.fill(); g.stroke();
+      stats.innerHTML = `<span>paso <b>${st.path.length - 1}</b></span><span>x <b>${fmtN(st.x)}</b></span><span>f(x) <b>${fmtN(f(st.x))}</b></span><span>f′(x) <b>${fmtN(df(st.x))}</b></span>` + (st.msg ? `<span style="color:var(--bad);flex-basis:100%">${st.msg}</span>` : "");
+    }
+    reg(cv, draw);
+  };
+
+  // ---- 3. grafo de retropropagación
+  widgets.grafo = (el) => {
+    const w = new L.Value(0.5), x = new L.Value(2), b = new L.Value(-0.3), m = w.mul(x), z = m.add(b), a = z.tanh(), d = a.sub(1), Lo = d.pow(2); Lo.backward();
+    const N = [["w", "w", w, 60, 45], ["x", "x", x, 60, 120], ["b", "b", b, 60, 195], ["m", "m = w·x", m, 200, 82], ["z", "z = m + b", z, 330, 140], ["a", "a = tanh z", a, 460, 140], ["d", "d = a − 1", d, 590, 140], ["L", "L = d²", Lo, 700, 140]];
+    const E = [["w", "m"], ["x", "m"], ["m", "z"], ["b", "z"], ["z", "a"], ["a", "d"], ["d", "L"]], pos = Object.fromEntries(N.map((n) => [n[0], n]));
+    const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 760 250"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Grafo computacional de L");
+    const mk = (t, at, txt) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
+    for (const [p, q] of E) { const A = pos[p], B = pos[q]; svg.append(mk("line", { class: "g-edge", x1: A[3] + 48, y1: A[4], x2: B[3] - 48, y2: B[4] })); }
+    const groups = {};
+    for (const [id, name, v, cx, cy] of N) {
+      const gr = mk("g", { class: "g-node" }); gr.append(mk("rect", { x: cx - 48, y: cy - 27, width: 96, height: 54 }), mk("text", { class: "nm", x: cx, y: cy - 8 }, name), mk("text", { class: "vl", x: cx, y: cy + 14 }, fmtN(v.data, 4)), mk("text", { class: "gr", x: cx, y: cy + 45 }, "∂L = " + fmtN(v.grad, 3)));
+      svg.append(gr); groups[id] = gr;
+    }
+    const fwd = ["m", "z", "a", "d", "L"], bwd = ["L", "d", "a", "z", "m", "w", "x", "b"]; let timers = [];
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    const reset = () => { clear(); for (const k in groups) groups[k].setAttribute("class", "g-node"); ["w", "x", "b"].forEach((k) => groups[k].setAttribute("class", "g-node on has-v")); note.textContent = "Las entradas valen w = 0,5, x = 2, b = −0,3."; };
+    const seq = (ids, cls, text, delay = 500, then) => { ids.forEach((id, i) => timers.push(setTimeout(() => { const g = groups[id]; g.setAttribute("class", "g-node on has-v" + (cls === "g" || g.classList.contains("has-g") ? " has-g" : "")); if (cls === "g") g.classList.add("has-g"); }, i * delay))); timers.push(setTimeout(() => { note.textContent = text; then && then(); }, ids.length * delay)); };
+    const note = h("p", { class: "readout", style: "margin:0" }), allFwd = () => fwd.forEach((k) => groups[k].setAttribute("class", "g-node on has-v"));
+    const bF = h("button", { class: "btn primary", onclick: () => { reset(); note.textContent = "Calculando hacia delante…"; seq(fwd, "v", "Hacia delante: L = 0,1565. Ahora propaga los gradientes hacia atrás."); } }, "Hacia delante"),
+      bB = h("button", { class: "btn", onclick: () => { clear(); allFwd(); ["w", "x", "b"].forEach((k) => groups[k].setAttribute("class", "g-node on has-v")); for (const k of bwd) groups[k].classList.remove("has-g"); note.textContent = "Propagando hacia atrás: cada nodo multiplica el gradiente que recibe por su derivada local…"; seq(bwd, "g", "Listo. dL/dw = −1,004, dL/db = −0,502, dL/dx = −0,251. Son los números de la guía."); } }, "Hacia atrás"), bR = h("button", { class: "btn", onclick: reset }, "Reiniciar");
+    el.append(h("div", { class: "widget" }, h("div", { class: "btn-row" }, bF, bB, bR), h("div", { class: "graph-wrap" }, svg), note)); reset();
+  };
+
+  // ---- 4. playground
+  widgets.playground = (el) => {
+    const st = { data: "espirales", capas: 2, ancho: 16, act: "tanh", optim: "sgd", lr: 0.4, model: null, ds: null, loss: [], paso: 0, run: false, raf: 0, last: null };
+    const mkData = () => { st.ds = st.data === "espirales" ? L.spirals(100, 3, 0.2, 0) : st.data === "lunas" ? L.moons(240, 0.12, 0) : L.xorData(240, 0.18, 0); };
+    const mkModel = () => { const k = st.data === "espirales" ? 3 : 2, dims = [2, ...Array(st.capas).fill(st.ancho), k]; st.model = new L.MLP(dims, { act: st.act, optim: st.optim, seed: 1 }); st.loss = []; st.paso = 0; st.last = null; };
+    const cv = h("canvas", { role: "img", "aria-label": "Frontera de decisión de la red" }), cl = h("canvas", { role: "img", "aria-label": "Curva de pérdida" }), stats = h("div", { class: "stats" });
+    const reset = () => { st.run = false; bPlay.textContent = "▶ Entrenar"; mkData(); mkModel(); draw(true); };
+    const sLr = slider("tasa de aprendizaje", 0.01, 1, 0.01, st.lr, (v) => { st.lr = v; }, (v) => v.toFixed(2));
+    const ctl = h("div", { class: "controls" },
+      select("datos", [["espirales", "Espirales (3 clases)"], ["lunas", "Dos lunas"], ["xor", "XOR"]], st.data, (v) => { st.data = v; reset(); }),
+      select("capas ocultas", [["1", "1"], ["2", "2"], ["3", "3"]], "2", (v) => { st.capas = +v; reset(); }),
+      select("neuronas por capa", [["2", "2"], ["4", "4"], ["8", "8"], ["16", "16"], ["32", "32"]], "16", (v) => { st.ancho = +v; reset(); }),
+      select("activación", [["tanh", "tanh"], ["relu", "ReLU"], ["sigmoid", "sigmoide"]], st.act, (v) => { st.act = v; reset(); }),
+      select("optimizador", [["sgd", "SGD"], ["momentum", "SGD + momentum"], ["adam", "Adam"]], st.optim, (v) => { st.optim = v; if (v === "adam") { st.lr = 0.02; sLr.set(0.02); } else if (st.lr < 0.1) { st.lr = 0.4; sLr.set(0.4); } reset(); }), sLr.el);
+    const bPlay = h("button", { class: "btn primary", onclick: () => { st.run = !st.run; bPlay.textContent = st.run ? "❚❚ Pausa" : "▶ Entrenar"; if (st.run) loop(); } }, "▶ Entrenar"), bStep = h("button", { class: "btn", onclick: () => { for (let i = 0; i < 10; i++) one(); draw(true); } }, "+10 pasos"), bReset = h("button", { class: "btn", onclick: reset }, "Reiniciar");
+    el.append(h("div", { class: "widget cols" }, h("div", null, ctl, h("div", { style: "height:12px" }), h("div", { class: "btn-row" }, bPlay, bStep, bReset)), h("div", { class: "canvas-wrap" }, cv, h("div", { style: "height:8px" }), cl, h("div", { style: "height:8px" }), stats)));
+    function one() { const r = st.model.trainStep(st.ds.X, st.ds.y, st.lr); st.last = r; st.loss.push(r.loss); st.paso++; if (!Number.isFinite(r.loss)) { st.run = false; bPlay.textContent = "▶ Entrenar"; } }
+    function loop() { if (!st.run || !el.isConnected) return; for (let i = 0; i < 6; i++) one(); draw(true); if (st.paso >= 6000) { st.run = false; bPlay.textContent = "▶ Entrenar"; return; } st.raf = requestAnimationFrame(loop); }
+    function draw(full) {
+      const W = Math.max(240, Math.min(420, cv.parentElement.clientWidth || 420)), T = theme(), g = fit(cv, W, W), gp = L.gridPredict(st.model, st.ds, 40);
+      g.clearRect(0, 0, W, W); drawBoundary(g, W, W, { res: gp.res, grid: gp.grid, bounds: gp.bounds, points: st.ds.X.map((p, i) => [p[0], p[1], st.ds.y[i]]) }, T);
+      const h2 = 90, g2 = fit(cl, W, h2); g2.clearRect(0, 0, W, h2);
+      if (st.loss.length > 1) drawLine(g2, W, h2, { title: "pérdida", series: [{ name: "entrenamiento", y: st.loss.filter((_, i) => i % Math.max(1, Math.floor(st.loss.length / 200)) === 0) }] }, T); else { g2.fillStyle = T.muted; g2.font = FONT; g2.fillText("La curva de pérdida aparecerá al entrenar.", 8, 40); }
+      const r = st.last || st.model.evaluate(st.ds.X, st.ds.y);
+      stats.innerHTML = `<span>paso <b>${st.paso}</b></span><span>pérdida <b>${r.loss.toFixed(3)}</b></span><span>precisión <b>${(r.acc * 100).toFixed(1)} %</b></span><span>parámetros <b>${st.model.nParams()}</b></span>`;
+    }
+    mkData(); mkModel(); reg(cv, () => draw(true));
+  };
+
+  // ---- 5. inicialización
+  widgets.init = (el) => {
+    const INITS = [["N(0, 1)", () => 1], ["N(0, 0.01)", () => 0.01], ["Xavier", (f) => Math.sqrt(1 / f)], ["He", (f) => Math.sqrt(2 / f)]], cache = {}, st = { act: "relu" };
+    function sim(scale, act, layers = 30, width = 128, batch = 64) {
+      const g = L.rng(7); let hh = Float64Array.from({ length: batch * width }, () => g.normal()), res = []; const s = scale(width);
+      for (let l = 0; l < layers; l++) {
+        const W = Float64Array.from({ length: width * width }, () => g.normal() * s), O = new Float64Array(batch * width);
+        for (let i = 0; i < batch; i++) for (let p = 0; p < width; p++) { const a = hh[i * width + p]; if (a !== 0) for (let j = 0; j < width; j++) O[i * width + j] += a * W[p * width + j]; }
+        for (let q = 0; q < O.length; q++) O[q] = act === "relu" ? (O[q] > 0 ? O[q] : 0) : Math.tanh(O[q]);
+        hh = O; let m = 0, v = 0; for (const x of hh) m += x; m /= hh.length; for (const x of hh) v += (x - m) ** 2; res.push(Math.sqrt(v / hh.length));
+      } return res;
+    }
+    const cv = h("canvas", { role: "img", "aria-label": "Desviación estándar por capa" }), sum = h("div", { class: "readout" });
+    const sel = select("activación", [["relu", "ReLU"], ["tanh", "tanh"]], "relu", (v) => { st.act = v; draw(); });
+    el.append(h("div", { class: "widget" }, h("div", { style: "max-width:260px" }, sel), h("div", { class: "canvas-wrap" }, cv), sum));
+    function draw() {
+      if (!cache[st.act]) cache[st.act] = INITS.map(([n, s]) => ({ name: n, y: sim(s, st.act) }));
+      const series = cache[st.act], W = Math.max(260, Math.min(640, cv.parentElement.clientWidth || 640)), g = fit(cv, W, Math.round(W * 0.5)); g.clearRect(0, 0, W, W);
+      drawLine(g, W, Math.round(W * 0.5), { title: "std de las activaciones por capa (escala log)", ylog: true, x1: true, series }, theme());
+      sum.innerHTML = "<b>En la capa 30:</b> " + series.map((s) => `${s.name} → ${fmtN(s.y[29], 2)}`).join(" · ") + "<br><span style='color:var(--muted)'>Una línea plana es una señal que sobrevive. Las que caen o se disparan hacen imposible entrenar.</span>";
+    }
+    reg(cv, draw);
+  };
+
+  // ---- 6. atención
+  widgets.atencion = (el) => {
+    const st = { text: "el robot busca los datos hoy", k: 4, scale: true, causal: true };
+    const inp = h("input", { type: "text", value: st.text, "aria-label": "Frase", maxlength: 60 }), cvHost = h("div", { class: "canvas-wrap" }), info = h("div", { class: "readout" });
+    inp.addEventListener("input", () => { st.text = inp.value; draw(); });
+    const sd = slider("dimensión d", 1, 8, 1, st.k, (v) => { st.k = v; draw(); }, (v) => String(2 ** v));
+    const cs = h("input", { type: "checkbox", id: "w6s", checked: true }), cc = h("input", { type: "checkbox", id: "w6c", checked: true });
+    cs.addEventListener("change", () => { st.scale = cs.checked; draw(); }); cc.addEventListener("change", () => { st.causal = cc.checked; draw(); });
+    const hash = (s) => { let x = 5381; for (const c of s) x = ((x * 33) ^ c.charCodeAt(0)) >>> 0; return x; };
+    el.append(h("div", { class: "widget cols" }, h("div", { class: "controls" }, h("div", { class: "ctl" }, h("span", { class: "lbl" }, "frase (hasta 8 palabras)"), inp), sd.el, h("label", { class: "ctl", style: "display:flex;gap:8px;align-items:center" }, cs, "dividir por √d"), h("label", { class: "ctl", style: "display:flex;gap:8px;align-items:center" }, cc, "máscara causal")), h("div", null, cvHost, h("div", { style: "height:10px" }), info)));
+    let cv = null;
+    function compute() {
+      const toks = st.text.trim().split(/\s+/).filter(Boolean).slice(0, 8), d = 2 ** st.k; if (!toks.length) return null;
+      const E = toks.map((t) => { const g = L.rng(hash(t)); return Array.from({ length: d }, () => g.normal()); }), proj = (seed) => { const g = L.rng(seed * 1000 + d); return Array.from({ length: d }, () => Array.from({ length: d }, () => g.normal() / Math.sqrt(d))); };
+      const Q = L.matmul(E, proj(1)), K = L.matmul(E, proj(2)), S = L.matmul(Q, L.transpose(K)).map((r) => r.map((s) => (st.scale ? s / Math.sqrt(d) : s)));
+      const P = S.map((r, i) => L.softmax(r.map((s, j) => (st.causal && j > i ? -Infinity : s))));
+      return { toks, P, d };
+    }
+    function draw() {
+      const r = compute(); if (!r) { cvHost.replaceChildren(); info.textContent = "Escribe una frase."; return; }
+      cvHost.replaceChildren(); const spec = { type: "heat", title: "pesos de atención (fila = quién mira, columna = a quién)", matrix: r.P, xlabels: r.toks, ylabels: r.toks, min: 0, max: 1 }; cv = renderPlot(spec, cvHost, 480);
+      const mx = r.P.map((row) => Math.max(...row)), avg = mx.reduce((a, b) => a + b, 0) / mx.length;
+      info.innerHTML = `d = <b>${r.d}</b> · peso máximo medio por fila: <b>${avg.toFixed(2)}</b> (1,00 = mira a una sola palabra)<br><span style="color:var(--muted)">${!st.scale && r.d >= 64 ? "Sin dividir por √d, con d grande el softmax se vuelve casi 0/1." : st.scale ? "Con el escalado, la mezcla se mantiene repartida aunque d crezca." : "Prueba subir d con el escalado desactivado."}</span>`;
+    }
+    draw();
+  };
+
+  // ---- 7. modelo de lenguaje
+  widgets.lenguaje = (el) => {
+    const S = ["el gato", "la niña", "el ingeniero", "la máquina", "el robot", "mi vecino"], Vb = ["come", "mira", "busca", "construye", "analiza"], O = ["pescado", "el motor", "un puente", "los datos", "la red"], A = ["", " rápido", " con calma", " hoy"];
+    const g = L.rng(1), pick = (a) => a[g.int(a.length)]; let txt = ""; for (let i = 0; i < 3000; i++) txt += pick(S) + " " + pick(Vb) + " " + pick(O) + pick(A) + ".\n";
+    const cut = Math.floor(txt.length * 0.9), tr = txt.slice(0, cut), va = txt.slice(cut), chars = [...new Set(txt)].sort(), Vn = chars.length, floor = Math.log(600) / (txt.length / 3000), ORD = [0, 1, 2, 3, 4, 6, 8];
+    const tabs = []; for (let k = 0; k <= 8; k++) tabs.push(new Map());
+    for (let i = 0; i < tr.length; i++) for (let k = 0; k <= 8 && i - k >= 0; k++) { const c = tr.slice(i - k, i); let m = tabs[k].get(c); if (!m) { m = { tot: 0, c: {} }; tabs[k].set(c, m); } m.c[tr[i]] = (m.c[tr[i]] || 0) + 1; m.tot++; }
+    const prob = (n, ctx, ch) => { let p = 1 / Vn; for (let k = 0; k <= n; k++) { if (ctx.length < k) break; const m = tabs[k].get(k ? ctx.slice(ctx.length - k) : ""); if (!m) break; p = ((m.c[ch] || 0) + 0.5 * p) / (m.tot + 0.5); } return p; };
+    const nll = (n) => { let s = 0; for (let i = 1; i < va.length; i++) s -= Math.log(prob(n, va.slice(Math.max(0, i - n), i), va[i])); return s / (va.length - 1); };
+    const losses = ORD.map(nll), st = { n: 8, T: 0.8 }, host = h("div", { class: "canvas-wrap" }), outp = h("div", { class: "readout", style: "min-height:6em;white-space:pre-wrap" });
+    const spec = { type: "bar", title: "pérdida de validación (nats por carácter)", categories: ORD.map((n) => (n === 0 ? "sin contexto" : n === 1 ? "bigrama (1)" : "contexto de " + n)), values: losses, ref: { value: floor, label: "cota teórica " + floor.toFixed(3) } };
+    renderPlot(spec, host, 560);
+    const gen = () => {
+      const lines = []; for (let r = 0; r < 5; r++) {
+        let ctx = "\n", s = ""; for (let i = 0; i < 70; i++) {
+          const pr = chars.map((c) => Math.pow(prob(st.n, ctx.slice(-st.n || ctx.length), c), 1 / st.T)), tot = pr.reduce((a, b) => a + b, 0); let u = Math.random() * tot, k = 0; while (k < pr.length - 1 && u >= pr[k]) { u -= pr[k]; k++; }
+          const c = chars[k]; if (c === "\n") break; s += c; ctx += c;
+        } lines.push(s);
+      } outp.textContent = lines.join("\n");
+    };
+    const bGen = h("button", { class: "btn primary", onclick: gen }, "Generar 5 frases");
+    el.append(h("div", { class: "widget" }, host, h("p", { style: "margin:0;font-size:14px;color:var(--muted)" }, "Corpus de 3 000 frases. Cota teórica: ", h("b", { style: "color:var(--ink)" }, floor.toFixed(3) + " nats/carácter"), ". Sin contexto (todas las letras con su frecuencia) la pérdida es ", losses[0].toFixed(2), "; con 8 caracteres llega a ", losses[6].toFixed(3), "."),
+      h("div", { class: "widget cols", style: "grid-template-columns:minmax(0,260px) minmax(0,1fr)" }, h("div", { class: "controls" }, select("contexto al generar", ORD.filter((n) => n > 0).map((n) => [String(n), n + " caracteres"]), "8", (v) => { st.n = +v; }), slider("temperatura τ", 0.2, 2, 0.05, st.T, (v) => { st.T = v; }, (v) => v.toFixed(2)).el, bGen), outp))); gen();
+  };
+
+  // ---- 8. difusión
+  widgets.difusion = (el) => {
+    const T = 200, ab = []; let p = 1; for (const b of L.linspace(1e-4, 0.06, T)) { p *= 1 - b; ab.push(p); }
+    const g0 = L.rng(3), N = 350, M = 700, mk = () => { const u = g0.next(), t = 1.5 * Math.PI * (1 + 2 * u); return [t * Math.cos(t), t * Math.sin(t)]; };
+    const raw = Array.from({ length: M }, mk), mxa = Math.max(...raw.flat().map(Math.abs)), data = raw.map((q) => [(q[0] / mxa) * 1.5 + 0.03 * g0.normal(), (q[1] / mxa) * 1.5 + 0.03 * g0.normal()]);
+    const eps = Array.from({ length: N }, () => [g0.normal(), g0.normal()]), st = { t: 0, mode: "fwd", pts: null, steps: 20, tm: null, info: "" };
+    const cv = h("canvas", { role: "img", "aria-label": "Puntos de la espiral con ruido" }), stats = h("div", { class: "stats" });
+    const fwdPts = (t) => eps.map((e, i) => [Math.sqrt(ab[t]) * data[i][0] + Math.sqrt(1 - ab[t]) * e[0], Math.sqrt(ab[t]) * data[i][1] + Math.sqrt(1 - ab[t]) * e[1]]);
+    const sT = slider("paso de ruido t", 0, T - 1, 1, 0, (v) => { stop(); st.mode = "fwd"; st.t = v; st.pts = null; draw(); });
+    function stop() { clearInterval(st.tm); st.tm = null; }
+    const bD = h("button", { class: "btn", onclick: () => { stop(); st.mode = "fwd"; st.t = 0; st.tm = setInterval(() => { st.t = Math.min(T - 1, st.t + 4); sT.set(st.t); draw(); if (st.t >= T - 1) stop(); }, 40); } }, "Destruir"),
+      bG = h("button", { class: "btn primary", onclick: () => {
+        stop(); st.mode = "rev"; const ts = L.linspace(T - 1, 0, st.steps).map(Math.round); let x = Array.from({ length: N }, () => [g0.normal(), g0.normal()]), i = 0; st.pts = x; st.t = ts[0]; sT.set(st.t); draw();
+        st.tm = setInterval(() => {
+          const t = ts[i], a = ab[t], ap = i + 1 < ts.length ? ab[ts[i + 1]] : 1, sa = Math.sqrt(a), s1 = Math.sqrt(1 - a);
+          x = x.map((xi) => { // denoiser ideal: media posterior de x0 dado xt, sobre el conjunto de datos
+            let mxl = -Infinity; const lg = data.map((q) => { const dx = xi[0] - sa * q[0], dy = xi[1] - sa * q[1], v = -(dx * dx + dy * dy) / (2 * (1 - a) + 1e-9); if (v > mxl) mxl = v; return v; });
+            let sw = 0, x0 = 0, y0 = 0; for (let j = 0; j < data.length; j++) { const w = Math.exp(lg[j] - mxl); sw += w; x0 += w * data[j][0]; y0 += w * data[j][1]; } x0 /= sw; y0 /= sw;
+            const e0 = (xi[0] - sa * x0) / s1, e1 = (xi[1] - sa * y0) / s1; return [Math.sqrt(ap) * x0 + Math.sqrt(1 - ap) * e0, Math.sqrt(ap) * y0 + Math.sqrt(1 - ap) * e1];
+          });
+          st.pts = x; st.t = i + 1 < ts.length ? ts[i + 1] : 0; sT.set(st.t); draw(); i++; if (i >= ts.length) { stop(); st.info = "Generación terminada: las muestras vuelven a formar la espiral."; draw(); }
+        }, 380); st.info = "";
+      } }, "Generar desde ruido");
+    const stp = select("pasos al generar (DDIM)", [["5", "5"], ["10", "10"], ["20", "20"], ["50", "50"]], "20", (v) => { st.steps = +v; });
+    el.append(h("div", { class: "widget cols" }, h("div", { class: "controls" }, sT.el, h("div", { class: "btn-row" }, bD, bG), stp, stats), h("div", { class: "canvas-wrap" }, cv)));
+    function draw() {
+      const W = Math.max(240, Math.min(460, cv.parentElement.clientWidth || 460)), g = fit(cv, W, W), Tm = theme(), X = (v) => ((v + 3) / 6) * W, Y = (v) => W - ((v + 3) / 6) * W;
+      g.clearRect(0, 0, W, W); g.fillStyle = rgbs(rgb(Tm.cls[0]), 0.28); for (const q of data) { g.beginPath(); g.arc(X(q[0]), Y(q[1]), 2.2, 0, 7); g.fill(); }
+      const pts = st.mode === "rev" && st.pts ? st.pts : fwdPts(st.t); g.fillStyle = Tm.cls[1]; for (const q of pts) { g.beginPath(); g.arc(X(q[0]), Y(q[1]), 2.8, 0, 7); g.fill(); }
+      g.font = FONT; g.fillStyle = Tm.muted; g.textAlign = "left"; g.fillText("azul: datos originales · ámbar: xₜ", 8, W - 8);
+      const a = ab[Math.min(T - 1, Math.max(0, st.t))]; stats.innerHTML = `<span>t <b>${st.t}</b></span><span>ᾱₜ <b>${fmtN(a, 3)}</b></span><span>señal √ᾱ <b>${(Math.sqrt(a) * 100).toFixed(0)} %</b></span><span>ruido √(1−ᾱ) <b>${(Math.sqrt(1 - a) * 100).toFixed(0)} %</b></span>` + (st.info ? `<span style="color:var(--good);flex-basis:100%">${st.info}</span>` : "");
+    }
+    reg(cv, draw);
+  };
+
+  // ============================================================ interfaz principal
+  const nav = $("#nav"), main = $("#main");
+  let dockOpen = false;
+  function renderNav() {
+    const items = LESSONS.map((l, i) => {
+      const ok = unlocked(i), s = state.done[l.id], badge = s === "pasado" ? "✓" : s === "saltado" ? "↷" : ok ? String(l.num) : "";
+      const b = h("button", { class: "lesson-item", disabled: !ok, "data-state": s || (ok ? "open" : "locked"), "aria-current": state.current === l.id ? "true" : "false", onclick: () => go(l.id) },
+        h("span", { class: "badge", html: ok ? esc(badge) : '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' }), h("span", null, h("b", null, l.title), h("small", null, l.week + " · " + l.minutes + " min")));
+      return h("li", null, b);
+    });
+    nav.replaceChildren(h("h2", null, "Lecciones"), h("ul", { class: "lesson-list" }, items), h("h2", null, "Próximamente"), ...PROXIMAS.map((p) => h("div", { class: "soon" }, h("b", null, p.title), h("small", null, p.week + " · " + p.note))),
+      h("div", { class: "side-foot" }, h("span", null, "Tu progreso se guarda en este navegador. Cuando se añadan lecciones, aparecerán aquí sin perder lo hecho."), h("button", { class: "btn small", onclick: resetProgress }, "Reiniciar progreso")));
+    const n = LESSONS.filter((l) => isDone(l.id)).length; $("#progressText").textContent = n + " de " + LESSONS.length + " completadas"; $("#progressFill").style.width = (100 * n) / LESSONS.length + "%";
+  }
+  function resetProgress() { if (!resetProgress.armed) { resetProgress.armed = true; const b = nav.querySelector(".side-foot .btn"); b.textContent = "Pulsa otra vez para confirmar"; setTimeout(() => { resetProgress.armed = false; b.textContent = "Reiniciar progreso"; }, 3500); return; } resetProgress.armed = false; state.done = {}; saveDone(); LESSONS.forEach((l) => store.del("code:" + l.id)); go(LESSONS[0].id, true); }
+  function go(id, force) { if (state.current === id && !force) { closeNav(); return; } location.hash = "leccion-" + id; if (state.current !== id || force) show(id); closeNav(); }
+  function show(id) {
+    const i = Math.max(0, LESSONS.findIndex((l) => l.id === id)), l = LESSONS[i]; if (!unlocked(i)) { return show(LESSONS[0].id); }
+    state.current = l.id; renderNav(); drawables.clear();
+    const nextBtn = h("div", { class: "callout next", hidden: !isDone(l.id) || i === LESSONS.length - 1 }, h("span", null, h("b", null, "Siguiente: "), (LESSONS[i + 1] || {}).title), h("button", { class: "btn primary", onclick: () => go(LESSONS[i + 1].id) }, "Ir a la lección " + (l.num + 1) + " →"));
+    const cell = makeCell(l, (s) => { renderNav(); nextBtn.hidden = i === LESSONS.length - 1; if (i === LESSONS.length - 1) { done.hidden = false; } });
+    const wEl = h("div"), done = h("div", { class: "callout", hidden: !(i === LESSONS.length - 1 && isDone(l.id)) }, h("b", null, "Completaste todas las lecciones disponibles. "), "Pronto habrá más. Mientras tanto, la consola de abajo es tuya: pruébalo todo.");
+    const lesson = h("article", { class: "lesson" },
+      h("div", { class: "lesson-head" }, h("div", { class: "chips" }, h("span", { class: "chip" }, "Lección " + l.num + " de " + LESSONS.length), h("span", { class: "chip mute" }, "Guía del curso · " + l.week), h("span", { class: "chip mute" }, "≈ " + l.minutes + " min")), h("h1", null, l.title)),
+      h("section", { class: "section" }, h("h2", null, "La idea"), h("div", { class: "prose", html: l.intro })),
+      h("section", { class: "section" }, h("h2", null, "Pruébalo"), h("div", { class: "panel" }, h("header", null, h("h3", null, l.widgetTitle), h("p", null, l.widgetNote)), wEl)),
+      h("section", { class: "section" }, h("h2", null, "Ahora programa tú"), h("div", { class: "prose", html: l.taskIntro }), cell, nextBtn, done),
+      h("section", { class: "section" }, h("h2", null, "Lo que te llevas"), h("div", { class: "callout prose", html: l.outro })),
+      h("div", { class: "lesson-nav" }, i > 0 ? h("button", { class: "btn", onclick: () => go(LESSONS[i - 1].id) }, "← " + LESSONS[i - 1].title) : h("span"), unlocked(i + 1) && LESSONS[i + 1] ? h("button", { class: "btn", onclick: () => go(LESSONS[i + 1].id) }, LESSONS[i + 1].title + " →") : h("span")));
+    main.replaceChildren(lesson); widgets[l.widget](wEl); window.scrollTo({ top: 0 });
+  }
+  function closeNav() { document.body.classList.remove("nav-open"); const s = $(".scrim"); if (s) s.remove(); }
+  function openNav() { document.body.classList.add("nav-open"); if (!$(".scrim")) document.body.append(h("div", { class: "scrim", onclick: closeNav })); }
+  $("#menuBtn").addEventListener("click", () => (document.body.classList.contains("nav-open") ? closeNav() : openNav()));
+
+  // ---- tema
+  function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+  applyTheme(store.get("theme", null));
+  $("#themeBtn").addEventListener("click", () => { const dark = document.documentElement.getAttribute("data-theme") ? document.documentElement.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; const t = dark ? "light" : "dark"; store.set("theme", t); applyTheme(t); });
+
+  // ---- consola (REPL)
+  const dock = $("#dock"), dOut = $("#dockOut"), dIn = $("#dockIn"), dSt = $("#dockSt"), hist = [], hp = { i: 0 };
+  function setDock(open) { dockOpen = open; dock.hidden = !open; document.body.style.setProperty("--dock-h", open ? dock.offsetHeight + "px" : "0px"); $("#consoleBtn").setAttribute("aria-pressed", String(open)); if (open) { dIn.focus(); redrawAll(); } }
+  $("#consoleBtn").addEventListener("click", () => { setDock(!dockOpen); if (dockOpen && !dOut.children.length) welcome(); });
+  $("#dockClose").addEventListener("click", () => setDock(false));
+  $("#dockClear").addEventListener("click", () => dOut.replaceChildren());
+  $("#dockReset").addEventListener("click", () => { kernel.reset(); addLine(dOut, "Kernel reiniciado: se borraron las variables.", "sys"); });
+  $("#dockHelp").addEventListener("click", () => submit("ayuda()"));
+  window.addEventListener("resize", () => { if (dockOpen) document.body.style.setProperty("--dock-h", dock.offsetHeight + "px"); });
+  kernel.busyCb = (b) => { dSt.classList.toggle("busy", b); dSt.lastChild.textContent = b ? "ejecutando…" : "kernel listo"; };
+  function welcome() { addLine(dOut, "Consola de JavaScript. Comparte variables con las celdas de las lecciones, como un cuaderno.", "sys"); addLine(dOut, "Escribe una expresión y pulsa Enter (Shift+Enter para otra línea). Prueba: ayuda()  ·  moons(5)  ·  new Value(3).mul(4)", "sys"); }
+  async function submit(code) {
+    code = code.trim(); if (!code) return; hist.push(code); hp.i = hist.length; addLine(dOut, "› " + code, "ech");
+    const r = await kernel.run(code, sinkFor(dOut));
+    if (!r.ok) addLine(dOut, r.error, "err"); else if (r.has) addLine(dOut, r.value, "res");
+  }
+  dIn.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const v = dIn.value; dIn.value = ""; dIn.style.height = "auto"; submit(v); }
+    else if (e.key === "ArrowUp" && (dIn.selectionStart === 0 || !dIn.value.includes("\n")) && hp.i > 0) { e.preventDefault(); dIn.value = hist[--hp.i]; }
+    else if (e.key === "ArrowDown" && hp.i < hist.length) { e.preventDefault(); hp.i++; dIn.value = hp.i === hist.length ? "" : hist[hp.i]; }
+  });
+  dIn.addEventListener("input", () => { dIn.style.height = "auto"; dIn.style.height = Math.min(120, dIn.scrollHeight) + "px"; });
+  window.__ln = { kernel, LESSONS, state, go, show, setDock };   // para depuración desde la consola del navegador
+
+  // ---- arranque
+  function route() { const m = location.hash.match(/^#leccion-([a-z]+)$/), id = m ? m[1] : null, first = LESSONS.find((l, i) => !isDone(l.id) && unlocked(i)) || LESSONS[LESSONS.length - 1]; show(id && LESSONS.some((l) => l.id === id) ? id : first.id); }
+  window.addEventListener("hashchange", () => { const m = location.hash.match(/^#leccion-([a-z]+)$/); if (m && m[1] !== state.current && LESSONS.some((l) => l.id === m[1])) show(m[1]); });
+  route();
+})();
+
+</script>
