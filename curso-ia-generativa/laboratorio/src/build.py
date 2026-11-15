@@ -3,12 +3,12 @@
    dist/artifact.html            fragmento para publicar como Artifact (sin doctype/head/body)
    ../laboratorio-neuronal.html  documento completo que se abre con doble clic en cualquier navegador
 """
-import pathlib
+import json, pathlib
 src = pathlib.Path(__file__).resolve().parent
 dist = src.parent
 (dist / "dist").mkdir(exist_ok=True)
 t = (src / "template.html").read_text()
-for tag, f in [("CSS", "styles.css"), ("KERNEL", "kernel.js"), ("LESSONS", "lessons.js"), ("APP", "app.js")]:
+for tag, f in [("CSS", "styles.css"), ("KERNEL", "kernel.js"), ("PYINTERP", "pyinterp.js"), ("LESSONS", "lessons.js"), ("APP", "app.js")]:
     t = t.replace(f"/*__{tag}__*/", (src / f).read_text().replace("</script", "<\\/script"))
 (dist / "dist" / "artifact.html").write_text(t)
 head, _, rest = t.partition("<header")

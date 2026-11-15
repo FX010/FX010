@@ -145,6 +145,8 @@ canvas { display: block; max-width: 100%; border-radius: 10px; background: var(-
 .out { background: var(--code-bg); border-top: 1px solid var(--code-line); color: var(--code-ink); font: 13px/1.6 var(--font-mono); padding: 10px 16px; display: grid; gap: 6px; max-height: 420px; overflow: auto; }
 .out:empty { display: none; }
 .out .ln { white-space: pre-wrap; word-break: break-word; }
+.out .err b, .dock-out .err b { display: block; font-weight: 600; }
+.out .err small, .dock-out .err small { display: block; opacity: .7; font-size: 12px; margin-top: 2px; }
 .out .res { color: var(--code-num); }
 .out .err { color: #FF8FA3; }
 .out .ech { color: var(--code-muted); }
@@ -195,3 +197,31 @@ details.aid pre { margin: 10px 0 0; background: var(--code-bg); color: var(--cod
   .dock { height: min(52vh, 420px); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- versión para principiantes ---------- */
+.tk-b { background: rgba(255,182,73,.22); color: #FFB649; border-radius: 4px; box-shadow: 0 0 0 1px rgba(255,182,73,.5); }
+.btn.big { padding: 11px 20px; font-size: 15px; border-radius: 12px; }
+.lead { font-size: 18px; max-width: 54ch; color: var(--muted); margin: 0; }
+.goal { margin: 0; font-size: 16px; }
+.goal b { color: var(--accent); }
+.home-btn { width: 100%; justify-content: center; margin-bottom: 14px; }
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.steps > div { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: grid; gap: 4px; }
+.steps b { font-family: var(--font-head); font-size: 16px; }
+.steps span { color: var(--muted); font-size: 14px; }
+.mods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.mod { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.mod .chip { justify-self: start; }
+.mod h3 { font-size: 18px; }
+.mod p { margin: 0; color: var(--muted); font-size: 14px; }
+.mod ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 2px; }
+.mod li small, .modp { color: var(--muted); }
+.modp { font-size: 12px; font-weight: 600; }
+.note { color: var(--muted); font-size: 14px; max-width: 66ch; }
+.example { display: grid; gap: 8px; }
+.ex-note { margin: 0; font-size: 14px; color: var(--muted); }
+.hints { display: grid; gap: 8px; padding: 0 16px; }
+.hints:not(:empty) { padding: 12px 16px 4px; }
+.hint { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+.toast { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 70; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: var(--shadow); max-width: calc(100vw - 32px); }
+@media (max-width: 880px) { .steps, .mods { grid-template-columns: minmax(0, 1fr); } .lead { font-size: 16px; } }

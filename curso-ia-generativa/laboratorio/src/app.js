@@ -1,4 +1,4 @@
-/* Laboratorio Neuronal: aplicación. Depende de kernel.js (kernelLib) y lessons.js (LESSONS, PROXIMAS). */
+/* Laboratorio Neuronal: aplicación. Depende de kernel.js (kernelLib, solo para los widgets), pyinterp.js (el intérprete de Python) y lessons.js. */
 (function () {
   "use strict";
   const L = {}; kernelLib(L);   // biblioteca para los widgets (hilo principal)
@@ -127,100 +127,100 @@
     return cv;
   }
 
-  // ============================================================ kernel
-  class Kernel {
-    constructor() { this.seq = 0; this.q = Promise.resolve(); this.cur = null; this.busyCb = () => {}; this.mode = "worker"; this.ready = this.boot(); }
-    boot() {
-      return new Promise((resolve) => {
-        const fallback = () => { if (this.mode === "main" && this._ok) return; this.mode = "main"; try { if (this.w) this.w.terminate(); } catch (e) { /* */ } L2(); this._ok = true; resolve(); };
-        const L2 = () => { window.__emit = (m) => this.onMsg(m); kernelLib(window); };
-        try {
-          const src = "self.__emit=function(m){postMessage(m)};(" + kernelLib.toString() + ")(self);onmessage=function(e){self.__handle(e.data)};";
-          this.url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
-          this.w = new Worker(this.url);
-          let done = false;
-          this.w.onerror = () => { if (!done) { done = true; fallback(); } };
-          this.w.onmessage = (e) => { if (!done && e.data && e.data.type === "result" && e.data.id === 0) { done = true; this._ok = true; clearTimeout(tm); resolve(); } else this.onMsg(e.data); };
-          const tm = setTimeout(() => { if (!done) { done = true; fallback(); } }, 2500);
-          this.w.postMessage({ type: "run", id: 0, code: "1" });
-        } catch (e) { fallback(); }
-      });
-    }
-    restart() { try { this.w && this.w.terminate(); } catch (e) { /* */ } this._ok = false; this.cur = null; this.ready = this.boot(); }
-    onMsg(m) {
-      if (m.type === "log" || m.type === "plot") { if (this.cur && this.cur.sink) this.cur.sink(m); return; }
-      if (this.cur && m.id === this.cur.id) { clearTimeout(this.cur.timer); const c = this.cur; this.cur = null; this.busyCb(false); c.resolve(m); }
-    }
-    enqueue(msg, sink) {
-      const p = this.q.then(async () => {
-        await this.ready;
-        return new Promise((resolve) => {
-          const id = ++this.seq; msg.id = id; this.busyCb(true);
-          const c = { id, sink, resolve };
-          if (this.mode === "worker") c.timer = setTimeout(() => {
-            this.restart(); this.busyCb(false);
-            resolve({ ok: false, error: "Tiempo agotado (8 s). ¿Hay un bucle infinito? Reinicié el kernel, así que las variables anteriores se perdieron.", results: [{ name: "Ejecución", ok: false, msg: "El código tardó más de 8 s y se detuvo." }], timeout: true });
-          }, 8000);
-          this.cur = c;
-          if (this.mode === "worker") this.w.postMessage(msg); else window.__handle(msg);
-        });
-      });
-      this.q = p.catch(() => {}); return p;
-    }
-    run(code, sink) { return this.enqueue({ type: "run", code }, sink); }
-    check(fn) { return this.enqueue({ type: "check", code: fn.toString() }); }
-    reset() { this.restart(); }
-  }
-  const kernel = new Kernel();
-
-  // ============================================================ editor con resaltado
-  const KW = /^(function|return|const|let|var|if|else|for|while|of|in|new|class|true|false|null|undefined|break|continue|typeof|instanceof|throw|try|catch|async|await)$/;
-  const LIBN = /^(print|plot|plotBoundary|Value|V|MLP|Math|randn|matmul|transpose|zeros|softmax|dot|argmax|range|linspace|sum|mean|std|rng|moons|spirals|xorData|gradcheck|ayuda)$/;
+  // ============================================================ motor de Python (intérprete propio, sin eval)
+  const { PyInterp, PyError } = PyInterpLib;
   const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  class PyKernel {
+    constructor() { this.q = Promise.resolve(); this.busyCb = () => {}; this.buf = ""; this.sink = null; this.interp = new PyInterp({ stdout: (s) => this.write(s), plot: (spec) => { if (this.sink) this.sink({ type: "plot", spec }); } }); }
+    write(s) { this.buf += s; let i; while ((i = this.buf.indexOf("\n")) >= 0) { const line = this.buf.slice(0, i); this.buf = this.buf.slice(i + 1); if (this.sink) this.sink({ type: "log", text: line }); } }
+    flush() { if (this.buf && this.sink) this.sink({ type: "log", text: this.buf }); this.buf = ""; }
+    enqueue(job) { const p = this.q.then(job); this.q = p.catch(() => {}); return p; }
+    run(code, sink, opts = {}) {
+      return this.enqueue(async () => {
+        this.busyCb(true); await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+        this.sink = sink || null; this.buf = ""; let err = null;
+        try { if (opts.repl) this.interp.repl(code, opts.ms || 6000); else this.interp.run(code, opts.ms || 6000); }
+        catch (e) { err = e instanceof PyError ? [e.pyType, e.pyMsg, e.line == null ? this.interp.line : e.line] : ["JavascriptError", String((e && e.message) || e), null]; }
+        this.flush(); this.sink = null; this.busyCb(false);
+        return err ? { ok: false, err } : { ok: true };
+      });
+    }
+    check(src) { return this.enqueue(async () => ({ results: this.interp.check(src, 8000) })); }
+    reset() { return this.enqueue(async () => { this.interp.reset(); }); }
+  }
+  const kernel = new PyKernel();
+
+  // ---- errores explicados en español sencillo
+  function explain(err, code) {
+    const [t, msg, line] = err, at = line ? " (línea " + line + ")" : "";
+    if (t === "NotSupported") return msg + at + ". Este laboratorio usa un Python simplificado; para eso usa Python completo.";
+    if (/__TIMEOUT__/.test(msg)) return "Tu código tardó más de 6 segundos y lo detuve. Revisa que cada bucle while llegue a terminar.";
+    if (/(^|[^\w])_{3}([^\w]|$)/.test(code) && /NameError|SyntaxError/.test(t)) return "Todavía quedan huecos ___ por completar" + at + ". Sustitúyelos por tu código.";
+    let m;
+    if (t === "NameError" && (m = msg.match(/name '(.*)' is not defined/))) return "Python no conoce «" + m[1] + "»" + at + ". Revisa cómo lo escribiste (las mayúsculas cuentan) y que lo hayas creado antes de usarlo.";
+    if (t === "IndentationError") return "La sangría no es correcta" + at + ". Lo que va dentro de un if, for o def empieza con 4 espacios.";
+    if (t === "SyntaxError") return "Hay un error de escritura" + at + ". Suele ser un paréntesis o una comilla sin cerrar, o faltar los dos puntos «:» al final de un if, for o def.";
+    if (t === "TypeError") return /unsupported operand|can only concatenate|must be str|must be real/.test(msg) ? "Estás mezclando tipos que no se pueden combinar" + at + ", por ejemplo texto con números. Convierte con str() o int()." : /positional argument|required/.test(msg) ? "Llamaste a una función con más o menos datos de los que espera" + at + "." : "Un valor no tiene el tipo que se esperaba" + at + ".";
+    if (t === "ZeroDivisionError") return "Dividiste entre cero" + at + ".";
+    if (t === "IndexError") return "Pediste una posición que no existe en la lista" + at + ". La primera posición es la 0.";
+    if (t === "KeyError") return "Esa clave no existe en el diccionario" + at + ".";
+    if (t === "ValueError") return "Un valor no es válido para esa operación" + at + ".";
+    if (t === "AttributeError") return "Ese objeto no tiene lo que le pides" + at + ". Revisa el nombre.";
+    if (t === "ModuleNotFoundError") return "No encuentro ese módulo" + at + ".";
+    return "Python encontró un problema" + at + ".";
+  }
+  function addError(host, err, code) { const e = h("div", { class: "ln err" }, h("b", null, explain(err, code)), h("small", null, err[0] + ": " + err[1])); host.append(e); host.scrollTop = host.scrollHeight; }
+  function addLine(host, text, cls) { const e = h("div", { class: "ln " + (cls || "") }, text); host.append(e); host.scrollTop = host.scrollHeight; return e; }
+  function sinkFor(host) { return (m) => { if (m.type === "log") addLine(host, m.text); else if (m.type === "plot") { try { renderPlot(m.spec, host, 560); } catch (e) { addLine(host, "No se pudo dibujar el gráfico.", "err"); } } }; }
+  async function execute(code, host, opts) {
+    host.replaceChildren();
+    const r = await kernel.run(code, sinkFor(host), opts);
+    if (!r.ok) addError(host, r.err, code);
+    return r;
+  }
+
+  // ============================================================ editor con resaltado (Python)
+  const PYKW = /^(def|return|if|elif|else|for|while|in|not|and|or|is|import|from|as|pass|break|continue|class|lambda|try|except|finally|with|raise|True|False|None)$/;
+  const PYBI = /^(print|len|range|sum|max|min|round|abs|zip|enumerate|list|dict|str|int|float|sorted|map|math|random|grafica)$/;
   function highlight(src) {
-    const re = /(\/\/[^\n]*)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+    const re = /(#[^\n]*)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*')|(\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b)|(_{3,})|([A-Za-z_]\w*)/g;
     let out = "", last = 0, m;
     while ((m = re.exec(src))) {
       out += esc(src.slice(last, m.index)); last = re.lastIndex;
       if (m[1]) out += '<span class="tk-c">' + esc(m[1]) + "</span>";
       else if (m[2]) out += '<span class="tk-s">' + esc(m[2]) + "</span>";
       else if (m[3]) out += '<span class="tk-n">' + m[3] + "</span>";
-      else if (KW.test(m[4])) out += '<span class="tk-k">' + m[4] + "</span>";
-      else if (LIBN.test(m[4])) out += '<span class="tk-f">' + m[4] + "</span>";
-      else out += esc(m[4]);
+      else if (m[4]) out += '<span class="tk-b">' + m[4] + "</span>";
+      else if (PYKW.test(m[5])) out += '<span class="tk-k">' + m[5] + "</span>";
+      else if (PYBI.test(m[5])) out += '<span class="tk-f">' + m[5] + "</span>";
+      else out += m[5];
     }
     return out + esc(src.slice(last));
   }
   function makeEditor(initial, { onChange, onRun, label } = {}) {
-    const pre = h("pre", { "aria-hidden": "true" }), ta = h("textarea", { spellcheck: "false", autocapitalize: "off", autocomplete: "off", autocorrect: "off", "aria-label": label || "Editor de código", rows: 6 });
+    const pre = h("pre", { "aria-hidden": "true" }), ta = h("textarea", { spellcheck: "false", autocapitalize: "off", autocomplete: "off", autocorrect: "off", "aria-label": label || "Editor de código", rows: 4 });
     const wrap = h("div", { class: "editor" }, pre, ta);
-    const sync = () => { pre.innerHTML = highlight(ta.value) + "\n"; ta.style.height = "auto"; ta.style.height = Math.max(120, ta.scrollHeight + 2) + "px"; pre.scrollLeft = ta.scrollLeft; };
+    const sync = () => { pre.innerHTML = highlight(ta.value) + "\n"; ta.style.height = "auto"; ta.style.height = Math.max(88, ta.scrollHeight + 2) + "px"; pre.scrollLeft = ta.scrollLeft; };
     ta.value = initial; sync();
-    requestAnimationFrame(() => { sync(); setTimeout(sync, 120); });          // se mide de nuevo ya insertado en la página
+    requestAnimationFrame(() => { sync(); setTimeout(sync, 120); });
     try { document.fonts.ready.then(sync); } catch (e) { /* sin API de fuentes */ }
     reg(wrap, sync);
     ta.addEventListener("input", () => { sync(); onChange && onChange(ta.value); });
     ta.addEventListener("scroll", () => { pre.scrollLeft = ta.scrollLeft; });
     ta.addEventListener("keydown", (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); onRun && onRun(); return; }
-      const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value;
-      if (e.key === "Tab") { e.preventDefault(); ta.setRangeText("  ", s, en, "end"); ta.dispatchEvent(new Event("input")); }
-      else if (e.key === "Enter") {
-        e.preventDefault(); const ls = v.lastIndexOf("\n", s - 1) + 1, ind = (v.slice(ls, s).match(/^\s*/) || [""])[0], extra = /[{(\[]\s*$/.test(v.slice(ls, s)) ? "  " : "";
+      const s = ta.selectionStart, en = ta.selectionEnd, v = ta.value, ls = v.lastIndexOf("\n", s - 1) + 1;
+      if (e.key === "Tab") {
+        e.preventDefault();
+        if (e.shiftKey) { const m = v.slice(ls).match(/^ {1,4}/); if (m) { ta.setRangeText("", ls, ls + m[0].length, "preserve"); ta.setSelectionRange(Math.max(ls, s - m[0].length), Math.max(ls, s - m[0].length)); ta.dispatchEvent(new Event("input")); } }
+        else { ta.setRangeText("    ", s, en, "end"); ta.dispatchEvent(new Event("input")); }
+      } else if (e.key === "Enter") {
+        e.preventDefault(); const before = v.slice(ls, s), ind = (before.match(/^\s*/) || [""])[0], extra = /:\s*(#.*)?$/.test(before) ? "    " : "";
         ta.setRangeText("\n" + ind + extra, s, en, "end"); ta.dispatchEvent(new Event("input"));
       }
     });
     return { el: wrap, get value() { return ta.value; }, set value(x) { ta.value = x; sync(); }, focus() { ta.focus(); } };
-  }
-
-  // ============================================================ salida de celdas y consola
-  function addLine(host, text, cls) { const e = h("div", { class: "ln " + (cls || "") }, text); host.append(e); host.scrollTop = host.scrollHeight; return e; }
-  function sinkFor(host) { return (m) => { if (m.type === "log") addLine(host, m.text); else if (m.type === "plot") { try { renderPlot(m.spec, host, 560); } catch (e) { addLine(host, "No se pudo dibujar el gráfico: " + e.message, "err"); } } }; }
-  async function execute(code, host) {
-    host.replaceChildren();
-    const r = await kernel.run(code, sinkFor(host));
-    if (!r.ok) addLine(host, r.error, "err"); else if (r.has) addLine(host, "← " + r.value, "res");
-    return r;
   }
 
   // ============================================================ progreso
@@ -229,32 +229,38 @@
   const isDone = (id) => !!state.done[id];
   const unlocked = (i) => i === 0 || isDone(LESSONS[i - 1].id);
 
-  function makeCell(lesson, onPass) {
-    const key = "code:" + lesson.id, saved = store.get(key, null);
-    const out = h("div", { class: "out", "aria-live": "polite" }), tests = h("div", { class: "tests" }), win = h("div", { class: "win", hidden: true }), tag = h("span", { class: "tag" }, "Código · JavaScript");
-    const ed = makeEditor(saved ?? lesson.code, { onChange: (v) => store.set(key, v), onRun: () => run(), label: "Editor de la lección " + lesson.num });
-    let fails = 0;
+  // ---- celda de código: sirve para ejemplos (sin reto) y para retos
+  function makeCode(o) {
+    const key = "code:" + o.id, saved = store.get(key, null);
+    const out = h("div", { class: "out", "aria-live": "polite" });
+    const ed = makeEditor(saved ?? o.code, { onChange: (v) => store.set(key, v), onRun: () => run(), label: o.label });
     const btnRun = h("button", { class: "btn primary", onclick: () => run(), title: "Ctrl/Cmd + Enter" }, "▶ Ejecutar");
-    const btnCheck = h("button", { class: "btn good", onclick: () => check() }, "✓ Comprobar reto");
-    const btnReset = h("button", { class: "btn small", onclick: () => { ed.value = lesson.code; store.del(key); out.replaceChildren(); tests.replaceChildren(); win.hidden = true; } }, "Restablecer");
-    const skip = h("button", { class: "btn small", hidden: true, onclick: () => { state.done[lesson.id] = state.done[lesson.id] || "saltado"; saveDone(); onPass("saltado"); } }, "Saltar este reto");
+    const btnReset = h("button", { class: "btn small", onclick: () => { ed.value = o.code; store.del(key); out.replaceChildren(); if (o.reset) o.reset(); } }, "Restablecer");
     async function run() { btnRun.disabled = true; try { return await execute(ed.value, out); } finally { btnRun.disabled = false; } }
+    const parts = [h("div", { class: "cell-bar" }, h("span", { class: "tag" }, o.tag || "Python"), h("span", { class: "sp" }), btnReset, btnRun), ed.el, out];
+    return { el: h("div", { class: "cell" }, parts), ed, out, run, bar: parts[0], btnRun };
+  }
+  function makeTask(lesson, onPass) {
+    const c = makeCode({ id: lesson.id, code: lesson.code, tag: "Completa los huecos ___ y comprueba", label: "Editor del reto de la lección " + lesson.num, reset: () => { tests.replaceChildren(); win.hidden = true; } });
+    const tests = h("div", { class: "tests" }), win = h("div", { class: "win", hidden: true }), hints = h("div", { class: "hints" });
+    let fails = 0, shown = 0;
+    const btnCheck = h("button", { class: "btn good", onclick: () => check() }, "✓ Comprobar reto");
+    const skip = h("button", { class: "btn small", hidden: true, onclick: () => { state.done[lesson.id] = state.done[lesson.id] || "saltado"; saveDone(); onPass("saltado"); } }, "Saltar este reto");
+    const bHint = h("button", { class: "btn small", onclick: () => { if (shown >= lesson.hints.length) return; hints.append(h("div", { class: "hint" }, h("b", null, "Pista " + (shown + 1) + " de " + lesson.hints.length + ": "), lesson.hints[shown])); shown++; if (shown >= lesson.hints.length) { bHint.disabled = true; bHint.textContent = "Sin más pistas"; } } }, "💡 Pista");
+    c.bar.insertBefore(bHint, c.bar.children[2]); c.bar.append(btnCheck); c.bar.insertBefore(skip, c.bar.children[2]);
     async function check() {
       btnCheck.disabled = true; tests.replaceChildren(h("div", { class: "test" }, h("span"), "Comprobando…"));
       try {
-        const r = await run(); if (r.timeout) { tests.replaceChildren(); return; }
-        if (!r.ok) { tests.replaceChildren(h("div", { class: "test no" }, h("span", { class: "ic" }, "✕"), h("div", null, "Tu código tiene un error. Corrígelo y vuelve a comprobar."))); fails++; skip.hidden = fails < 2; return; }
-        const c = await kernel.check(lesson.check), res = c.results || [];
-        tests.replaceChildren(...res.map((t) => h("div", { class: "test " + (t.ok ? "ok" : "no") }, h("span", { class: "ic" }, t.ok ? "✓" : "✕"), h("div", null, t.name, t.ok ? null : h("small", null, t.msg)))));
-        if (res.length && res.every((t) => t.ok)) { win.hidden = false; win.textContent = "Reto superado. " + res.length + " de " + res.length + " comprobaciones correctas."; if (state.done[lesson.id] !== "pasado") { state.done[lesson.id] = "pasado"; saveDone(); } onPass("pasado"); }
-        else { win.hidden = true; fails++; skip.hidden = fails < 2; }
+        const r = await c.run();
+        if (!r.ok) { tests.replaceChildren(h("div", { class: "test no" }, h("span", { class: "ic" }, "✕"), h("div", null, "Tu código tiene un error. Corrígelo y vuelve a comprobar."))); fails++; skip.hidden = fails < 1; return; }
+        const res = (await kernel.check(lesson.check)).results;
+        tests.replaceChildren(...res.map((t) => h("div", { class: "test " + (t[1] ? "ok" : "no") }, h("span", { class: "ic" }, t[1] ? "✓" : "✕"), h("div", null, t[0], t[1] ? null : h("small", null, t[2])))));
+        if (res.length && res.every((t) => t[1])) { win.hidden = false; win.textContent = "¡Reto superado! " + res.length + " de " + res.length + " comprobaciones correctas."; if (state.done[lesson.id] !== "pasado") { state.done[lesson.id] = "pasado"; saveDone(); } onPass("pasado"); }
+        else { win.hidden = true; fails++; skip.hidden = fails < 1; }
       } finally { btnCheck.disabled = false; }
     }
-    const aid = h("details", { class: "aid" }, h("summary", null, "Pistas y solución"),
-      h("ol", null, lesson.hints.map((t) => h("li", null, t))),
-      h("details", { style: "margin-top:10px" }, h("summary", { style: "font-weight:600;font-size:13px" }, "Ver solución completa"), h("pre", null, lesson.solution), h("button", { class: "btn small", style: "margin-top:8px", onclick: () => { ed.value = lesson.solution; store.set(key, lesson.solution); } }, "Copiar al editor")));
-    const el = h("div", { class: "cell" }, h("div", { class: "cell-bar" }, tag, h("span", { class: "sp" }), btnReset, skip, btnRun, btnCheck), ed.el, out, tests, win, aid);
-    return el;
+    const aid = h("details", { class: "aid" }, h("summary", null, "¿Te atascaste? Ver la solución"), h("pre", null, lesson.solution), h("button", { class: "btn small", style: "margin-top:8px", onclick: () => { c.ed.value = lesson.solution; store.set("code:" + lesson.id, lesson.solution); } }, "Copiar al editor"));
+    return h("div", null, c.el, hints, tests, win, aid);
   }
 
   // ============================================================ widgets
@@ -323,29 +329,6 @@
     reg(cv, draw);
   };
 
-  // ---- 3. grafo de retropropagación
-  widgets.grafo = (el) => {
-    const w = new L.Value(0.5), x = new L.Value(2), b = new L.Value(-0.3), m = w.mul(x), z = m.add(b), a = z.tanh(), d = a.sub(1), Lo = d.pow(2); Lo.backward();
-    const N = [["w", "w", w, 60, 45], ["x", "x", x, 60, 120], ["b", "b", b, 60, 195], ["m", "m = w·x", m, 200, 82], ["z", "z = m + b", z, 330, 140], ["a", "a = tanh z", a, 460, 140], ["d", "d = a − 1", d, 590, 140], ["L", "L = d²", Lo, 700, 140]];
-    const E = [["w", "m"], ["x", "m"], ["m", "z"], ["b", "z"], ["z", "a"], ["a", "d"], ["d", "L"]], pos = Object.fromEntries(N.map((n) => [n[0], n]));
-    const NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg"); svg.setAttribute("viewBox", "0 0 760 250"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "Grafo computacional de L");
-    const mk = (t, at, txt) => { const e = document.createElementNS(NS, t); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
-    for (const [p, q] of E) { const A = pos[p], B = pos[q]; svg.append(mk("line", { class: "g-edge", x1: A[3] + 48, y1: A[4], x2: B[3] - 48, y2: B[4] })); }
-    const groups = {};
-    for (const [id, name, v, cx, cy] of N) {
-      const gr = mk("g", { class: "g-node" }); gr.append(mk("rect", { x: cx - 48, y: cy - 27, width: 96, height: 54 }), mk("text", { class: "nm", x: cx, y: cy - 8 }, name), mk("text", { class: "vl", x: cx, y: cy + 14 }, fmtN(v.data, 4)), mk("text", { class: "gr", x: cx, y: cy + 45 }, "∂L = " + fmtN(v.grad, 3)));
-      svg.append(gr); groups[id] = gr;
-    }
-    const fwd = ["m", "z", "a", "d", "L"], bwd = ["L", "d", "a", "z", "m", "w", "x", "b"]; let timers = [];
-    const clear = () => { timers.forEach(clearTimeout); timers = []; };
-    const reset = () => { clear(); for (const k in groups) groups[k].setAttribute("class", "g-node"); ["w", "x", "b"].forEach((k) => groups[k].setAttribute("class", "g-node on has-v")); note.textContent = "Las entradas valen w = 0,5, x = 2, b = −0,3."; };
-    const seq = (ids, cls, text, delay = 500, then) => { ids.forEach((id, i) => timers.push(setTimeout(() => { const g = groups[id]; g.setAttribute("class", "g-node on has-v" + (cls === "g" || g.classList.contains("has-g") ? " has-g" : "")); if (cls === "g") g.classList.add("has-g"); }, i * delay))); timers.push(setTimeout(() => { note.textContent = text; then && then(); }, ids.length * delay)); };
-    const note = h("p", { class: "readout", style: "margin:0" }), allFwd = () => fwd.forEach((k) => groups[k].setAttribute("class", "g-node on has-v"));
-    const bF = h("button", { class: "btn primary", onclick: () => { reset(); note.textContent = "Calculando hacia delante…"; seq(fwd, "v", "Hacia delante: L = 0,1565. Ahora propaga los gradientes hacia atrás."); } }, "Hacia delante"),
-      bB = h("button", { class: "btn", onclick: () => { clear(); allFwd(); ["w", "x", "b"].forEach((k) => groups[k].setAttribute("class", "g-node on has-v")); for (const k of bwd) groups[k].classList.remove("has-g"); note.textContent = "Propagando hacia atrás: cada nodo multiplica el gradiente que recibe por su derivada local…"; seq(bwd, "g", "Listo. dL/dw = −1,004, dL/db = −0,502, dL/dx = −0,251. Son los números de la guía."); } }, "Hacia atrás"), bR = h("button", { class: "btn", onclick: reset }, "Reiniciar");
-    el.append(h("div", { class: "widget" }, h("div", { class: "btn-row" }, bF, bB, bR), h("div", { class: "graph-wrap" }, svg), note)); reset();
-  };
-
   // ---- 4. playground
   widgets.playground = (el) => {
     const st = { data: "espirales", capas: 2, ancho: 16, act: "tanh", optim: "sgd", lr: 0.4, model: null, ds: null, loss: [], paso: 0, run: false, raf: 0, last: null };
@@ -373,57 +356,6 @@
       stats.innerHTML = `<span>paso <b>${st.paso}</b></span><span>pérdida <b>${r.loss.toFixed(3)}</b></span><span>precisión <b>${(r.acc * 100).toFixed(1)} %</b></span><span>parámetros <b>${st.model.nParams()}</b></span>`;
     }
     mkData(); mkModel(); reg(cv, () => draw(true));
-  };
-
-  // ---- 5. inicialización
-  widgets.init = (el) => {
-    const INITS = [["N(0, 1)", () => 1], ["N(0, 0.01)", () => 0.01], ["Xavier", (f) => Math.sqrt(1 / f)], ["He", (f) => Math.sqrt(2 / f)]], cache = {}, st = { act: "relu" };
-    function sim(scale, act, layers = 30, width = 128, batch = 64) {
-      const g = L.rng(7); let hh = Float64Array.from({ length: batch * width }, () => g.normal()), res = []; const s = scale(width);
-      for (let l = 0; l < layers; l++) {
-        const W = Float64Array.from({ length: width * width }, () => g.normal() * s), O = new Float64Array(batch * width);
-        for (let i = 0; i < batch; i++) for (let p = 0; p < width; p++) { const a = hh[i * width + p]; if (a !== 0) for (let j = 0; j < width; j++) O[i * width + j] += a * W[p * width + j]; }
-        for (let q = 0; q < O.length; q++) O[q] = act === "relu" ? (O[q] > 0 ? O[q] : 0) : Math.tanh(O[q]);
-        hh = O; let m = 0, v = 0; for (const x of hh) m += x; m /= hh.length; for (const x of hh) v += (x - m) ** 2; res.push(Math.sqrt(v / hh.length));
-      } return res;
-    }
-    const cv = h("canvas", { role: "img", "aria-label": "Desviación estándar por capa" }), sum = h("div", { class: "readout" });
-    const sel = select("activación", [["relu", "ReLU"], ["tanh", "tanh"]], "relu", (v) => { st.act = v; draw(); });
-    el.append(h("div", { class: "widget" }, h("div", { style: "max-width:260px" }, sel), h("div", { class: "canvas-wrap" }, cv), sum));
-    function draw() {
-      if (!cache[st.act]) cache[st.act] = INITS.map(([n, s]) => ({ name: n, y: sim(s, st.act) }));
-      const series = cache[st.act], W = Math.max(260, Math.min(640, cv.parentElement.clientWidth || 640)), g = fit(cv, W, Math.round(W * 0.5)); g.clearRect(0, 0, W, W);
-      drawLine(g, W, Math.round(W * 0.5), { title: "std de las activaciones por capa (escala log)", ylog: true, x1: true, series }, theme());
-      sum.innerHTML = "<b>En la capa 30:</b> " + series.map((s) => `${s.name} → ${fmtN(s.y[29], 2)}`).join(" · ") + "<br><span style='color:var(--muted)'>Una línea plana es una señal que sobrevive. Las que caen o se disparan hacen imposible entrenar.</span>";
-    }
-    reg(cv, draw);
-  };
-
-  // ---- 6. atención
-  widgets.atencion = (el) => {
-    const st = { text: "el robot busca los datos hoy", k: 4, scale: true, causal: true };
-    const inp = h("input", { type: "text", value: st.text, "aria-label": "Frase", maxlength: 60 }), cvHost = h("div", { class: "canvas-wrap" }), info = h("div", { class: "readout" });
-    inp.addEventListener("input", () => { st.text = inp.value; draw(); });
-    const sd = slider("dimensión d", 1, 8, 1, st.k, (v) => { st.k = v; draw(); }, (v) => String(2 ** v));
-    const cs = h("input", { type: "checkbox", id: "w6s", checked: true }), cc = h("input", { type: "checkbox", id: "w6c", checked: true });
-    cs.addEventListener("change", () => { st.scale = cs.checked; draw(); }); cc.addEventListener("change", () => { st.causal = cc.checked; draw(); });
-    const hash = (s) => { let x = 5381; for (const c of s) x = ((x * 33) ^ c.charCodeAt(0)) >>> 0; return x; };
-    el.append(h("div", { class: "widget cols" }, h("div", { class: "controls" }, h("div", { class: "ctl" }, h("span", { class: "lbl" }, "frase (hasta 8 palabras)"), inp), sd.el, h("label", { class: "ctl", style: "display:flex;gap:8px;align-items:center" }, cs, "dividir por √d"), h("label", { class: "ctl", style: "display:flex;gap:8px;align-items:center" }, cc, "máscara causal")), h("div", null, cvHost, h("div", { style: "height:10px" }), info)));
-    let cv = null;
-    function compute() {
-      const toks = st.text.trim().split(/\s+/).filter(Boolean).slice(0, 8), d = 2 ** st.k; if (!toks.length) return null;
-      const E = toks.map((t) => { const g = L.rng(hash(t)); return Array.from({ length: d }, () => g.normal()); }), proj = (seed) => { const g = L.rng(seed * 1000 + d); return Array.from({ length: d }, () => Array.from({ length: d }, () => g.normal() / Math.sqrt(d))); };
-      const Q = L.matmul(E, proj(1)), K = L.matmul(E, proj(2)), S = L.matmul(Q, L.transpose(K)).map((r) => r.map((s) => (st.scale ? s / Math.sqrt(d) : s)));
-      const P = S.map((r, i) => L.softmax(r.map((s, j) => (st.causal && j > i ? -Infinity : s))));
-      return { toks, P, d };
-    }
-    function draw() {
-      const r = compute(); if (!r) { cvHost.replaceChildren(); info.textContent = "Escribe una frase."; return; }
-      cvHost.replaceChildren(); const spec = { type: "heat", title: "pesos de atención (fila = quién mira, columna = a quién)", matrix: r.P, xlabels: r.toks, ylabels: r.toks, min: 0, max: 1 }; cv = renderPlot(spec, cvHost, 480);
-      const mx = r.P.map((row) => Math.max(...row)), avg = mx.reduce((a, b) => a + b, 0) / mx.length;
-      info.innerHTML = `d = <b>${r.d}</b> · peso máximo medio por fila: <b>${avg.toFixed(2)}</b> (1,00 = mira a una sola palabra)<br><span style="color:var(--muted)">${!st.scale && r.d >= 64 ? "Sin dividir por √d, con d grande el softmax se vuelve casi 0/1." : st.scale ? "Con el escalado, la mezcla se mantiene repartida aunque d crezca." : "Prueba subir d con el escalado desactivado."}</span>`;
-    }
-    draw();
   };
 
   // ---- 7. modelo de lenguaje
@@ -486,36 +418,80 @@
     reg(cv, draw);
   };
 
+  // ---- temperatura
+  widgets.temperatura = (el) => {
+    const cats = ["A", "B", "C", "D", "E"], p = [0.05, 0.5, 0.25, 0.15, 0.05], st = { T: 1 };
+    const host = h("div", { class: "canvas-wrap" }), info = h("div", { class: "readout" });
+    const sl = slider("temperatura T", 0.1, 3, 0.05, 1, (v) => { st.T = v; draw(); }, (v) => v.toFixed(2));
+    el.append(h("div", { class: "widget cols" }, h("div", { class: "controls" }, sl.el, info), host));
+    function draw() {
+      const w = p.map((x) => Math.pow(x, 1 / st.T)), s = w.reduce((a, b) => a + b, 0), q = w.map((x) => x / s);
+      host.replaceChildren(); renderPlot({ type: "bar", title: "probabilidad de cada opción tras la temperatura", categories: cats.map((c, i) => c + " · antes " + Math.round(p[i] * 100) + " %"), values: q }, host, 520);
+      info.innerHTML = `La opción B sale el <b>${Math.round(q[1] * 100)} %</b> de las veces.<br><span style="color:var(--muted)">${st.T < 0.5 ? "Temperatura baja: casi siempre la más probable." : st.T > 1.8 ? "Temperatura alta: casi todo parejo, más variedad y más errores." : "Cerca de 1: respeta las probabilidades originales."}</span>`;
+    }
+    draw();
+  };
+
   // ============================================================ interfaz principal
-  const nav = $("#nav"), main = $("#main");
+  const nav = $("#nav"), main = $("#main"), MOD = Object.fromEntries(MODULES.map((m) => [m.id, m]));
+  const TOTAL_MIN = LESSONS.reduce((s, l) => s + l.minutes, 0);
   let dockOpen = false;
   function renderNav() {
-    const items = LESSONS.map((l, i) => {
-      const ok = unlocked(i), s = state.done[l.id], badge = s === "pasado" ? "✓" : s === "saltado" ? "↷" : ok ? String(l.num) : "";
-      const b = h("button", { class: "lesson-item", disabled: !ok, "data-state": s || (ok ? "open" : "locked"), "aria-current": state.current === l.id ? "true" : "false", onclick: () => go(l.id) },
-        h("span", { class: "badge", html: ok ? esc(badge) : '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' }), h("span", null, h("b", null, l.title), h("small", null, l.week + " · " + l.minutes + " min")));
-      return h("li", null, b);
-    });
-    nav.replaceChildren(h("h2", null, "Lecciones"), h("ul", { class: "lesson-list" }, items), h("h2", null, "Próximamente"), ...PROXIMAS.map((p) => h("div", { class: "soon" }, h("b", null, p.title), h("small", null, p.week + " · " + p.note))),
-      h("div", { class: "side-foot" }, h("span", null, "Tu progreso se guarda en este navegador. Cuando se añadan lecciones, aparecerán aquí sin perder lo hecho."), h("button", { class: "btn small", onclick: resetProgress }, "Reiniciar progreso")));
-    const n = LESSONS.filter((l) => isDone(l.id)).length; $("#progressText").textContent = n + " de " + LESSONS.length + " completadas"; $("#progressFill").style.width = (100 * n) / LESSONS.length + "%";
+    const parts = [h("button", { class: "btn small home-btn", onclick: () => go("inicio") }, "Inicio y guía")];
+    for (const m of MODULES) {
+      const ls = LESSONS.filter((l) => l.module === m.id);
+      parts.push(h("h2", null, m.title + " · " + ls.reduce((s, l) => s + l.minutes, 0) + " min"));
+      parts.push(h("ul", { class: "lesson-list" }, ls.map((l) => {
+        const i = LESSONS.indexOf(l), ok = unlocked(i), s = state.done[l.id], badge = s === "pasado" ? "✓" : s === "saltado" ? "↷" : String(l.num);
+        return h("li", null, h("button", { class: "lesson-item", disabled: !ok, "data-state": s || (ok ? "open" : "locked"), "aria-current": state.current === l.id ? "true" : "false", onclick: () => go(l.id) },
+          h("span", { class: "badge", html: ok ? esc(badge) : '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>' }), h("span", null, h("b", null, l.title), h("small", null, l.minutes + " min"))));
+      })));
+    }
+    parts.push(h("h2", null, "Próximamente"), ...PROXIMAS.map((p) => h("div", { class: "soon" }, h("b", null, p.title), h("small", null, p.note))));
+    parts.push(h("div", { class: "side-foot" }, h("span", null, "Tu progreso se guarda en este navegador."), h("button", { class: "btn small", onclick: resetProgress }, "Reiniciar progreso")));
+    nav.replaceChildren(...parts);
+    const n = LESSONS.filter((l) => isDone(l.id)).length, left = LESSONS.filter((l) => !isDone(l.id)).reduce((s, l) => s + l.minutes, 0);
+    $("#progressText").textContent = n + " de " + LESSONS.length + (left ? " · quedan ≈ " + left + " min" : " · ¡completo!"); $("#progressFill").style.width = (100 * n) / LESSONS.length + "%";
   }
-  function resetProgress() { if (!resetProgress.armed) { resetProgress.armed = true; const b = nav.querySelector(".side-foot .btn"); b.textContent = "Pulsa otra vez para confirmar"; setTimeout(() => { resetProgress.armed = false; b.textContent = "Reiniciar progreso"; }, 3500); return; } resetProgress.armed = false; state.done = {}; saveDone(); LESSONS.forEach((l) => store.del("code:" + l.id)); go(LESSONS[0].id, true); }
-  function go(id, force) { if (state.current === id && !force) { closeNav(); return; } location.hash = "leccion-" + id; if (state.current !== id || force) show(id); closeNav(); }
+  function resetProgress() { if (!resetProgress.armed) { resetProgress.armed = true; const b = nav.querySelector(".side-foot .btn"); b.textContent = "Pulsa otra vez para confirmar"; setTimeout(() => { resetProgress.armed = false; b.textContent = "Reiniciar progreso"; }, 3500); return; } resetProgress.armed = false; state.done = {}; saveDone(); LESSONS.forEach((l) => { store.del("code:" + l.id); (l.examples || []).forEach((e, k) => store.del("code:" + l.id + "-ex" + k)); }); go("inicio", true); }
+  function go(id, force) { if (state.current === id && !force) { closeNav(); return; } location.hash = id === "inicio" ? "inicio" : "leccion-" + id; if (state.current !== id || force) show(id); closeNav(); }
+  const firstOpen = () => LESSONS.find((l, i) => !isDone(l.id) && unlocked(i)) || LESSONS[LESSONS.length - 1];
+
+  function renderHome() {
+    state.current = "inicio"; renderNav(); drawables.clear();
+    const pyDone = LESSONS.filter((l) => l.module === "python").every((l) => isDone(l.id)), started = LESSONS.some((l) => isDone(l.id));
+    const startBtn = h("button", { class: "btn primary big", onclick: () => go(firstOpen().id) }, started ? "Continuar donde lo dejé →" : "Empezar →");
+    const skipBtn = pyDone ? null : h("button", { class: "btn big", onclick: () => { LESSONS.filter((l) => l.module === "python").forEach((l) => { if (!state.done[l.id]) state.done[l.id] = "saltado"; }); saveDone(); go("neurona"); } }, "Ya sé Python: ir a redes neuronales");
+    const mods = MODULES.map((m, k) => { const ls = LESSONS.filter((l) => l.module === m.id), n = ls.filter((l) => isDone(l.id)).length; return h("div", { class: "mod" }, h("span", { class: "chip" }, "Módulo " + (k + 1)), h("h3", null, m.title), h("p", null, m.blurb), h("ul", null, ls.map((l) => h("li", null, l.title, h("small", null, " · " + l.minutes + " min")))), h("small", { class: "modp" }, n + " de " + ls.length + " completadas")); });
+    main.replaceChildren(h("article", { class: "lesson" },
+      h("div", { class: "lesson-head" }, h("div", { class: "chips" }, h("span", { class: "chip" }, "≈ " + TOTAL_MIN + " minutos en total"), h("span", { class: "chip mute" }, "Sin instalar nada"), h("span", { class: "chip mute" }, "Python real")),
+        h("h1", null, "Aprende Python e IA en una hora"), h("p", { class: "lead" }, "Lecciones de 3 a 8 minutos. Lees poco, ejecutas código de verdad y ves el resultado al instante. Los retos se comprueban solos.")),
+      h("div", { class: "btn-row" }, startBtn, skipBtn),
+      h("section", { class: "section" }, h("h2", null, "Cómo funciona cada lección"), h("div", { class: "steps" },
+        h("div", null, h("b", null, "1 · Lee"), h("span", null, "Una idea corta, sin tecnicismos.")), h("div", null, h("b", null, "2 · Prueba"), h("span", null, "Ejecuta ejemplos y cámbialos.")), h("div", null, h("b", null, "3 · Completa"), h("span", null, "Rellena los huecos ___ y pulsa Comprobar.")))),
+      h("section", { class: "section" }, h("h2", null, "Tres módulos"), h("div", { class: "mods" }, mods)),
+      h("p", { class: "note" }, "Funciona sin instalar nada y sin conexión una vez cargada la página. Ejecuta un Python simplificado que cubre lo esencial: todo lo que aprendes aquí funciona igual en Python real. No incluye clases, try/except ni librerías externas como numpy. Si te atascas, cada reto tiene pistas y solución. La consola de abajo (botón «Consola») es un Python libre para probar lo que quieras.")));
+    window.scrollTo({ top: 0 });
+  }
+
   function show(id) {
-    const i = Math.max(0, LESSONS.findIndex((l) => l.id === id)), l = LESSONS[i]; if (!unlocked(i)) { return show(LESSONS[0].id); }
+    if (id === "inicio") return renderHome();
+    const i = Math.max(0, LESSONS.findIndex((l) => l.id === id)), l = LESSONS[i]; if (!unlocked(i)) return show(firstOpen().id);
     state.current = l.id; renderNav(); drawables.clear();
     const nextBtn = h("div", { class: "callout next", hidden: !isDone(l.id) || i === LESSONS.length - 1 }, h("span", null, h("b", null, "Siguiente: "), (LESSONS[i + 1] || {}).title), h("button", { class: "btn primary", onclick: () => go(LESSONS[i + 1].id) }, "Ir a la lección " + (l.num + 1) + " →"));
-    const cell = makeCell(l, (s) => { renderNav(); nextBtn.hidden = i === LESSONS.length - 1; if (i === LESSONS.length - 1) { done.hidden = false; } });
-    const wEl = h("div"), done = h("div", { class: "callout", hidden: !(i === LESSONS.length - 1 && isDone(l.id)) }, h("b", null, "Completaste todas las lecciones disponibles. "), "Pronto habrá más. Mientras tanto, la consola de abajo es tuya: pruébalo todo.");
+    const done = h("div", { class: "callout", hidden: !(i === LESSONS.length - 1 && isDone(l.id)) }, h("b", null, "¡Terminaste el recorrido! "), "Ya sabes lo básico de Python y cómo piensan las redes y los modelos generativos. La consola es tuya para seguir probando.");
+    const task = makeTask(l, () => { renderNav(); nextBtn.hidden = i === LESSONS.length - 1; if (i === LESSONS.length - 1) done.hidden = false; });
+    const exs = (l.examples || []).map((e, k) => { const c = makeCode({ id: l.id + "-ex" + k, code: e.code, tag: "Ejemplo · ejecútalo y cámbialo", label: "Ejemplo " + (k + 1) }); return h("div", { class: "example" }, h("p", { class: "ex-note" }, e.note), c.el); });
+    const wEl = h("div");
     const lesson = h("article", { class: "lesson" },
-      h("div", { class: "lesson-head" }, h("div", { class: "chips" }, h("span", { class: "chip" }, "Lección " + l.num + " de " + LESSONS.length), h("span", { class: "chip mute" }, "Guía del curso · " + l.week), h("span", { class: "chip mute" }, "≈ " + l.minutes + " min")), h("h1", null, l.title)),
+      h("div", { class: "lesson-head" }, h("div", { class: "chips" }, h("span", { class: "chip" }, MOD[l.module].title), h("span", { class: "chip mute" }, "Lección " + l.num + " de " + LESSONS.length), h("span", { class: "chip mute" }, "≈ " + l.minutes + " min")), h("h1", null, l.title), h("p", { class: "goal" }, h("b", null, "Al terminar: "), l.goal)),
       h("section", { class: "section" }, h("h2", null, "La idea"), h("div", { class: "prose", html: l.intro })),
-      h("section", { class: "section" }, h("h2", null, "Pruébalo"), h("div", { class: "panel" }, h("header", null, h("h3", null, l.widgetTitle), h("p", null, l.widgetNote)), wEl)),
-      h("section", { class: "section" }, h("h2", null, "Ahora programa tú"), h("div", { class: "prose", html: l.taskIntro }), cell, nextBtn, done),
+      exs.length ? h("section", { class: "section" }, h("h2", null, "Pruébalo"), ...exs) : null,
+      l.widget ? h("section", { class: "section" }, h("h2", null, "Míralo en vivo"), h("div", { class: "panel" }, h("header", null, h("h3", null, l.widgetTitle), h("p", null, l.widgetNote)), wEl)) : null,
+      h("section", { class: "section" }, h("h2", null, "Tu reto"), h("div", { class: "prose", html: l.taskIntro }), task, nextBtn, done),
       h("section", { class: "section" }, h("h2", null, "Lo que te llevas"), h("div", { class: "callout prose", html: l.outro })),
       h("div", { class: "lesson-nav" }, i > 0 ? h("button", { class: "btn", onclick: () => go(LESSONS[i - 1].id) }, "← " + LESSONS[i - 1].title) : h("span"), unlocked(i + 1) && LESSONS[i + 1] ? h("button", { class: "btn", onclick: () => go(LESSONS[i + 1].id) }, LESSONS[i + 1].title + " →") : h("span")));
-    main.replaceChildren(lesson); widgets[l.widget](wEl); window.scrollTo({ top: 0 });
+    main.replaceChildren(lesson); if (l.widget) widgets[l.widget](wEl); window.scrollTo({ top: 0 });
   }
   function closeNav() { document.body.classList.remove("nav-open"); const s = $(".scrim"); if (s) s.remove(); }
   function openNav() { document.body.classList.add("nav-open"); if (!$(".scrim")) document.body.append(h("div", { class: "scrim", onclick: closeNav })); }
@@ -524,34 +500,38 @@
   // ---- tema
   function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
   applyTheme(store.get("theme", null));
-  $("#themeBtn").addEventListener("click", () => { const dark = document.documentElement.getAttribute("data-theme") ? document.documentElement.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; const t = dark ? "light" : "dark"; store.set("theme", t); applyTheme(t); });
+  $("#themeBtn").addEventListener("click", () => { const cur = document.documentElement.getAttribute("data-theme"), dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches, t = dark ? "light" : "dark"; store.set("theme", t); applyTheme(t); });
 
-  // ---- consola (REPL)
+  // ---- consola de Python (REPL)
   const dock = $("#dock"), dOut = $("#dockOut"), dIn = $("#dockIn"), dSt = $("#dockSt"), hist = [], hp = { i: 0 };
-  function setDock(open) { dockOpen = open; dock.hidden = !open; document.body.style.setProperty("--dock-h", open ? dock.offsetHeight + "px" : "0px"); $("#consoleBtn").setAttribute("aria-pressed", String(open)); if (open) { dIn.focus(); redrawAll(); } }
-  $("#consoleBtn").addEventListener("click", () => { setDock(!dockOpen); if (dockOpen && !dOut.children.length) welcome(); });
+  function setDock(open) { dockOpen = open; dock.hidden = !open; document.body.style.setProperty("--dock-h", open ? dock.offsetHeight + "px" : "0px"); $("#consoleBtn").setAttribute("aria-pressed", String(open)); if (open) { dIn.focus(); redrawAll(); if (!dOut.children.length) welcome(); } }
+  $("#consoleBtn").addEventListener("click", () => setDock(!dockOpen));
   $("#dockClose").addEventListener("click", () => setDock(false));
   $("#dockClear").addEventListener("click", () => dOut.replaceChildren());
-  $("#dockReset").addEventListener("click", () => { kernel.reset(); addLine(dOut, "Kernel reiniciado: se borraron las variables.", "sys"); });
+  $("#dockReset").addEventListener("click", async () => { await kernel.reset(); addLine(dOut, "Python reiniciado: se borraron las variables.", "sys"); });
   $("#dockHelp").addEventListener("click", () => submit("ayuda()"));
   window.addEventListener("resize", () => { if (dockOpen) document.body.style.setProperty("--dock-h", dock.offsetHeight + "px"); });
-  kernel.busyCb = (b) => { dSt.classList.toggle("busy", b); dSt.lastChild.textContent = b ? "ejecutando…" : "kernel listo"; };
-  function welcome() { addLine(dOut, "Consola de JavaScript. Comparte variables con las celdas de las lecciones, como un cuaderno.", "sys"); addLine(dOut, "Escribe una expresión y pulsa Enter (Shift+Enter para otra línea). Prueba: ayuda()  ·  moons(5)  ·  new Value(3).mul(4)", "sys"); }
+  kernel.busyCb = (b) => { dSt.classList.toggle("busy", b); dSt.lastChild.textContent = b ? "ejecutando…" : "Python listo"; };
+  function welcome() { addLine(dOut, "Consola de Python. Comparte variables con las lecciones, como un cuaderno.", "sys"); addLine(dOut, "Escribe algo y pulsa Enter. Prueba: 2 + 2  ·  import math  ·  math.sqrt(16)  ·  ayuda()", "sys"); }
   async function submit(code) {
-    code = code.trim(); if (!code) return; hist.push(code); hp.i = hist.length; addLine(dOut, "› " + code, "ech");
-    const r = await kernel.run(code, sinkFor(dOut));
-    if (!r.ok) addLine(dOut, r.error, "err"); else if (r.has) addLine(dOut, r.value, "res");
+    code = code.replace(/\s+$/, ""); if (!code.trim()) return; hist.push(code); hp.i = hist.length; addLine(dOut, "› " + code.split("\n").join("\n  "), "ech");
+    const r = await kernel.run(code, sinkFor(dOut), { repl: true });
+    if (!r.ok) addError(dOut, r.err, code);
   }
   dIn.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const v = dIn.value; dIn.value = ""; dIn.style.height = "auto"; submit(v); }
-    else if (e.key === "ArrowUp" && (dIn.selectionStart === 0 || !dIn.value.includes("\n")) && hp.i > 0) { e.preventDefault(); dIn.value = hist[--hp.i]; }
-    else if (e.key === "ArrowDown" && hp.i < hist.length) { e.preventDefault(); hp.i++; dIn.value = hp.i === hist.length ? "" : hist[hp.i]; }
+    if (e.key === "Enter" && !e.shiftKey) {
+      const v = dIn.value, lines = v.split("\n"), last = lines[lines.length - 1];
+      if (/:\s*$/.test(last) || (lines.length > 1 && last.trim() !== "")) { e.preventDefault(); const ind = (last.match(/^\s*/) || [""])[0] + (/:\s*$/.test(last) ? "    " : ""); dIn.setRangeText("\n" + ind, dIn.selectionStart, dIn.selectionEnd, "end"); dIn.dispatchEvent(new Event("input")); return; }
+      e.preventDefault(); dIn.value = ""; dIn.style.height = "auto"; submit(v);
+    } else if (e.key === "Tab") { e.preventDefault(); dIn.setRangeText("    ", dIn.selectionStart, dIn.selectionEnd, "end"); }
+    else if (e.key === "ArrowUp" && !dIn.value.includes("\n") && hp.i > 0) { e.preventDefault(); dIn.value = hist[--hp.i]; }
+    else if (e.key === "ArrowDown" && !dIn.value.includes("\n") && hp.i < hist.length) { e.preventDefault(); hp.i++; dIn.value = hp.i === hist.length ? "" : hist[hp.i]; }
   });
-  dIn.addEventListener("input", () => { dIn.style.height = "auto"; dIn.style.height = Math.min(120, dIn.scrollHeight) + "px"; });
+  dIn.addEventListener("input", () => { dIn.style.height = "auto"; dIn.style.height = Math.min(140, dIn.scrollHeight) + "px"; });
   window.__ln = { kernel, LESSONS, state, go, show, setDock };   // para depuración desde la consola del navegador
 
   // ---- arranque
-  function route() { const m = location.hash.match(/^#leccion-([a-z]+)$/), id = m ? m[1] : null, first = LESSONS.find((l, i) => !isDone(l.id) && unlocked(i)) || LESSONS[LESSONS.length - 1]; show(id && LESSONS.some((l) => l.id === id) ? id : first.id); }
-  window.addEventListener("hashchange", () => { const m = location.hash.match(/^#leccion-([a-z]+)$/); if (m && m[1] !== state.current && LESSONS.some((l) => l.id === m[1])) show(m[1]); });
+  function route() { const hsh = location.hash, m = hsh.match(/^#leccion-([a-z]+)$/); if (m && LESSONS.some((l) => l.id === m[1])) show(m[1]); else if (hsh === "#inicio" || !LESSONS.some((l) => isDone(l.id))) renderHome(); else show(firstOpen().id); }
+  window.addEventListener("hashchange", () => { const m = location.hash.match(/^#leccion-([a-z]+)$/); if (m && m[1] !== state.current && LESSONS.some((l) => l.id === m[1])) show(m[1]); else if (location.hash === "#inicio" && state.current !== "inicio") renderHome(); });
   route();
 })();

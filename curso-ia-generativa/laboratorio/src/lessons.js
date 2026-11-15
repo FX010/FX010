@@ -1,398 +1,582 @@
-/* Contenido del laboratorio. Para añadir una lección nueva, agrega un objeto a LESSONS.
-   Cada reto `check` se ejecuta dentro del kernel, con acceso a lo que el alumno definió. */
+/* Contenido del laboratorio (versión para quien empieza con Python).
+   Cada lección: idea corta → ejemplos para ejecutar → reto con huecos ___ que se comprueba solo.
+   El código de los retos es Python real. Para añadir una lección, agrega un objeto a LESSONS. */
+const MODULES = [
+  { id: "python", title: "Python básico", blurb: "Variables, listas, funciones y decisiones: solo lo necesario." },
+  { id: "redes", title: "Redes neuronales", blurb: "Una neurona, cómo aprende y qué pasa al juntar muchas." },
+  { id: "generativa", title: "IA generativa", blurb: "Cómo un modelo predice, elige y crea a partir de ruido." },
+];
+
 const LESSONS = [
+  // ============================================================ MÓDULO 1 · PYTHON
   {
-    id: "neurona", num: 1, title: "La neurona", week: "Semana 1", minutes: 10, widget: "neurona",
-    intro: `<p>Una neurona artificial hace tres cosas: multiplica cada entrada por un <b>peso</b>, suma todo junto con un <b>sesgo</b> y pasa el resultado por una <b>activación</b> no lineal.</p>
-      <p class="formula">y = φ( w₁·x₁ + w₂·x₂ + b )</p>
-      <p>Los pesos giran la frontera de decisión, el sesgo la desplaza y la activación decide si la transición es brusca o suave. Sin la activación, apilar capas no serviría de nada, porque una composición de funciones lineales sigue siendo lineal.</p>`,
-    widgetTitle: "Mueve los pesos y mira la frontera",
-    widgetNote: "El color muestra la salida de la neurona en cada punto (x₁, x₂). Haz clic en el mapa para evaluar un punto concreto.",
-    taskIntro: `<p>Escribe la neurona en código. Después ajusta pesos a mano para que una neurona sigmoide se comporte como la puerta lógica <b>AND</b>: salida alta solo si <code>x₁ = 1</code> y <code>x₂ = 1</code>.</p>`,
-    code: `// y = tanh(w·x + b)
-function neurona(w, x, b) {
-  // suma los productos w[i] * x[i], añade b y aplica Math.tanh
-  return 0;
-}
-print(neurona([1, 2], [0.5, -1], 0.1)); // debería ser ≈ -0.8854
-
-// Reto 2: elige w y b para que sigmoide(w1*x1 + w2*x2 + b) sea una puerta AND
-const AND = { w: [0, 0], b: 0 };
-const sig = (z) => 1 / (1 + Math.exp(-z));
-for (const [a, c] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
-  print(a, c, '->', sig(AND.w[0] * a + AND.w[1] * c + AND.b));
-}`,
-    solution: `function neurona(w, x, b) {
-  let s = b;
-  for (let i = 0; i < w.length; i++) s += w[i] * x[i];
-  return Math.tanh(s);
-}
-print(neurona([1, 2], [0.5, -1], 0.1));
-
-const AND = { w: [10, 10], b: -15 };
-const sig = (z) => 1 / (1 + Math.exp(-z));
-for (const [a, c] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
-  print(a, c, '->', sig(AND.w[0] * a + AND.w[1] * c + AND.b));
-}`,
-    hints: ["Recorre w con un bucle for y acumula w[i] * x[i] en una variable que empiece en b.", "Para AND necesitas que w₁ + w₂ + b sea claramente positivo, pero que w₁ + b, w₂ + b y b sean claramente negativos.", "Prueba con pesos grandes (10 y 10) y un sesgo que deje (1,1) en +5 y los demás por debajo de −5."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      const r = [];
-      if (typeof neurona !== "function") return [t("Existe la función neurona(w, x, b)", false, "Todavía no está definida. Ejecuta la celda con function neurona(w, x, b) { ... }.")];
-      const y = neurona([1, 2], [0.5, -1], 0.1);
-      r.push(t("neurona([1,2], [0.5,-1], 0.1) ≈ −0.8854", Math.abs(y - Math.tanh(-1.4)) < 1e-6, "Devolvió " + fmt(y) + ". Calcula tanh(w·x + b)."));
-      r.push(t("Con pesos 0 la salida es tanh(b)", Math.abs(neurona([0, 0], [3, 4], 0.5) - Math.tanh(0.5)) < 1e-9, "Con w = [0,0] solo debe contar el sesgo."));
-      r.push(t("Funciona con una sola entrada", Math.abs(neurona([3], [1], 0.5) - Math.tanh(3.5)) < 1e-9, "No asumas que w tiene exactamente 2 elementos."));
-      if (typeof AND === "undefined" || !AND || !AND.w) r.push(t("Existe AND = { w: [..], b: .. }", false, "Define la constante AND."));
-      else {
-        const s = (a, c) => 1 / (1 + Math.exp(-(AND.w[0] * a + AND.w[1] * c + AND.b)));
-        const o = [s(0, 0), s(0, 1), s(1, 0), s(1, 1)];
-        r.push(t("La neurona implementa AND", o[3] > 0.9 && o[0] < 0.1 && o[1] < 0.1 && o[2] < 0.1, "Salidas para (0,0) (0,1) (1,0) (1,1): " + fmt(o) + ". Debe verse algo como [≈0, ≈0, ≈0, ≈1]."));
-      }
-      return r;
-    },
-    outro: `Una neurona traza una frontera recta. Para dibujar curvas hacen falta varias capas, que verás en la lección 4. Esto es la <b>Semana 1</b> de la guía.`,
+    id: "hola", module: "python", num: 1, title: "Tu primer programa", minutes: 3,
+    goal: "Guardar datos en variables y mostrarlos con print.",
+    intro: `<p>Un programa es una lista de instrucciones. Con <code>print()</code> muestras algo en pantalla. Con el signo <code>=</code> guardas un valor en una <b>variable</b>, que es una cajita con nombre.</p>
+      <p>Python hace cuentas con <code>+ - * /</code>. Las potencias se escriben con <code>**</code> y el texto va entre comillas.</p>`,
+    examples: [{ note: "Pulsa Ejecutar. Luego cambia los valores y vuelve a ejecutar.", code: `nombre = "Ana"
+edad = 30
+print("Hola", nombre)
+print("En 5 años tendrás", edad + 5)` }],
+    taskIntro: `<p>Completa el hueco <code>___</code> para calcular el total de una compra: el precio por la cantidad.</p>`,
+    code: `precio = 20
+cantidad = 3
+total = ___      # multiplica precio por cantidad
+print("Total:", total)`,
+    solution: `precio = 20
+cantidad = 3
+total = precio * cantidad
+print("Total:", total)`,
+    hints: ["Multiplicar se escribe con el signo *.", "Escribe: total = precio * cantidad"],
+    check: `def probar():
+    r = []
+    ok = all(n in U for n in ("precio", "cantidad", "total"))
+    _t(r, "Existen precio, cantidad y total", ok, "Crea las tres variables.")
+    if ok:
+        _t(r, "total es precio por cantidad", U["total"] == U["precio"] * U["cantidad"], "Ahora total vale " + repr(U["total"]) + ". Debe ser precio * cantidad.")
+    return r`,
+    outro: `Ya sabes crear variables y mostrar resultados. En las redes neuronales todo son números guardados en variables.`,
   },
   {
-    id: "gradiente", num: 2, title: "Bajar por la pérdida", week: "Semana 1", minutes: 10, widget: "gradiente",
-    intro: `<p>Entrenar una red significa encontrar parámetros que hagan pequeña una <b>pérdida</b>. El gradiente apunta hacia donde la pérdida sube más rápido, así que damos un paso en sentido contrario:</p>
-      <p class="formula">x ← x − η · f′(x)</p>
-      <p>η es la <b>tasa de aprendizaje</b>. Si es muy pequeña, avanzas con lentitud. Si es muy grande, te pasas del mínimo y puedes divergir. Además, con varios valles, el punto de partida decide en cuál terminas.</p>`,
+    id: "listas", module: "python", num: 2, title: "Listas y bucles", minutes: 5,
+    goal: "Recorrer una lista con for y calcular una media.",
+    intro: `<p>Una <b>lista</b> guarda varios valores entre corchetes: <code>[6, 8, 7]</code>. El primero está en la posición <b>0</b>.</p>
+      <p>Con <code>for</code> repites algo para cada elemento. Lo que va dentro del bucle lleva <b>sangría</b>: 4 espacios al inicio de la línea.</p>`,
+    examples: [{ note: "Ejecútalo y prueba a cambiar las notas.", code: `notas = [6, 8, 7]
+print(notas[0], len(notas))        # el primero (posición 0) y cuántos hay
+for n in notas:
+    print("Nota:", n, "doble:", n * 2)
+notas.append(10)                   # añadir al final
+print(notas)` }],
+    taskIntro: `<p>Calcula la media de las notas. Dentro del bucle, ve acumulando la suma.</p>`,
+    code: `notas = [6, 8, 7, 9]
+suma = 0
+for n in notas:
+    suma = ___        # lo que ya llevas más la nota n
+media = suma / len(notas)
+print("Media:", media)`,
+    solution: `notas = [6, 8, 7, 9]
+suma = 0
+for n in notas:
+    suma = suma + n
+media = suma / len(notas)
+print("Media:", media)`,
+    hints: ["En cada vuelta, n es una nota distinta. Hay que sumarla a lo que ya había.", "Escribe: suma = suma + n"],
+    check: `def probar():
+    r = []
+    ok = all(n in U for n in ("notas", "suma", "media"))
+    _t(r, "Existen notas, suma y media", ok, "Ejecuta la celda completa.")
+    if ok:
+        _t(r, "suma es la suma de todas las notas", _cerca(U["suma"], sum(U["notas"])), "suma vale " + repr(U["suma"]) + " y debería ser " + repr(sum(U["notas"])) + ".")
+        _t(r, "media = suma / cantidad de notas", _cerca(U["media"], sum(U["notas"]) / len(U["notas"])), "media vale " + repr(U["media"]) + ".")
+    return r`,
+    outro: `Los bucles son el motor del aprendizaje automático: una red repite miles de veces los mismos pasos.`,
+  },
+  {
+    id: "funciones", module: "python", num: 3, title: "Funciones", minutes: 5,
+    goal: "Crear tus propias funciones con def y return.",
+    intro: `<p>Una <b>función</b> es una receta con nombre: recibe datos, hace algo y devuelve un resultado con <code>return</code>.</p>
+      <p>Se define con <code>def</code> y se usa escribiendo su nombre con paréntesis. Ojo con los dos puntos <code>:</code> y la sangría.</p>`,
+    examples: [{ note: "Define la función una vez y úsala las veces que quieras.", code: `def doble(x):
+    return x * 2
+
+print(doble(4))
+print(doble(10) + 1)` }],
+    taskIntro: `<p>Completa las dos funciones. Cuando las ejecutes, se imprimirán sus resultados de prueba.</p>`,
+    code: `def cuadrado(x):
+    return ___        # x multiplicado por x
+
+def area_rectangulo(base, altura):
+    return ___
+
+print(cuadrado(5), area_rectangulo(3, 4))`,
+    solution: `def cuadrado(x):
+    return x * x
+
+def area_rectangulo(base, altura):
+    return base * altura
+
+print(cuadrado(5), area_rectangulo(3, 4))`,
+    hints: ["El cuadrado de un número es ese número por sí mismo.", "cuadrado: return x * x. Área: return base * altura."],
+    check: `def probar():
+    r = []
+    ok1 = callable(U.get("cuadrado"))
+    ok2 = callable(U.get("area_rectangulo"))
+    _t(r, "Existen las dos funciones", ok1 and ok2, "Define cuadrado(x) y area_rectangulo(base, altura).")
+    if ok1:
+        _t(r, "cuadrado(5) = 25", _try(U["cuadrado"], 5) == 25, "Obtuviste " + repr(_try(U["cuadrado"], 5)) + ".")
+        _t(r, "cuadrado(-3) = 9", _try(U["cuadrado"], -3) == 9, "Obtuviste " + repr(_try(U["cuadrado"], -3)) + ".")
+    if ok2:
+        _t(r, "area_rectangulo(3, 4) = 12", _try(U["area_rectangulo"], 3, 4) == 12, "Obtuviste " + repr(_try(U["area_rectangulo"], 3, 4)) + ".")
+        _t(r, "area_rectangulo(2.5, 2) = 5.0", _cerca(_try(U["area_rectangulo"], 2.5, 2), 5.0), "Obtuviste " + repr(_try(U["area_rectangulo"], 2.5, 2)) + ".")
+    return r`,
+    outro: `Una red neuronal es, en el fondo, una función enorme con muchos números ajustables. Ahora sabes escribir funciones.`,
+  },
+  {
+    id: "decisiones", module: "python", num: 4, title: "Decisiones con if", minutes: 4,
+    goal: "Elegir qué hacer según una condición.",
+    intro: `<p><code>if</code> ejecuta algo solo si una condición es verdadera. Compara con <code>==</code> (igual), <code>!=</code> (distinto), <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code> y <code>&lt;=</code>.</p>
+      <p>Con <code>elif</code> y <code>else</code> añades más casos. Python prueba las condiciones en orden y se queda con la primera que se cumple.</p>`,
+    examples: [{ note: "Cambia la temperatura y mira qué rama se ejecuta.", code: `temperatura = 28
+if temperatura > 30:
+    print("Hace calor")
+elif temperatura > 15:
+    print("Clima agradable")
+else:
+    print("Hace frío")` }],
+    taskIntro: `<p>Completa la función que clasifica una nota: 9 o más es sobresaliente, 5 o más es aprobado y menos de 5 es suspenso.</p>`,
+    code: `def clasificar(nota):
+    if nota >= 9:
+        return "sobresaliente"
+    elif ___:
+        return "aprobado"
+    else:
+        return ___
+
+print(clasificar(9.5), clasificar(6), clasificar(3))`,
+    solution: `def clasificar(nota):
+    if nota >= 9:
+        return "sobresaliente"
+    elif nota >= 5:
+        return "aprobado"
+    else:
+        return "suspenso"
+
+print(clasificar(9.5), clasificar(6), clasificar(3))`,
+    hints: ["La segunda condición es para notas de 5 o más.", "elif nota >= 5: …  y al final return \"suspenso\""],
+    check: `def probar():
+    r = []
+    if not callable(U.get("clasificar")):
+        return [["Existe la función clasificar(nota)", False, "Define def clasificar(nota)."]]
+    f = U["clasificar"]
+    for nota, esperado in [(9, "sobresaliente"), (9.5, "sobresaliente"), (5, "aprobado"), (6.9, "aprobado"), (4.9, "suspenso"), (0, "suspenso")]:
+        _t(r, "clasificar(" + str(nota) + ") = " + esperado, _try(f, nota) == esperado, "Obtuviste " + repr(_try(f, nota)) + ".")
+    return r`,
+    outro: `Con variables, bucles, funciones y decisiones ya puedes leer casi cualquier código de IA. Vamos con las redes neuronales.`,
+  },
+
+  // ============================================================ MÓDULO 2 · REDES NEURONALES
+  {
+    id: "neurona", module: "redes", num: 5, title: "La neurona", minutes: 6, widget: "neurona",
+    goal: "Programar una neurona artificial y ver qué decide.",
+    intro: `<p>Una neurona artificial es una función muy simple. Multiplica cada entrada por un <b>peso</b>, suma todo junto con un <b>sesgo</b> y «aplasta» el resultado con una función como <code>math.tanh</code>, que devuelve un número entre −1 y 1.</p>
+      <p class="formula">salida = tanh( peso₁·x₁ + peso₂·x₂ + sesgo )</p>
+      <p>Las redes gigantes son millones de estas piezas conectadas.</p>`,
+    examples: [{ note: "Una neurona con dos entradas, paso a paso.", code: `import math
+entradas = [1.0, 2.0]
+pesos = [0.5, -0.3]
+sesgo = 0.1
+suma = sesgo
+for x, w in zip(entradas, pesos):
+    suma = suma + x * w
+print("suma:", suma)
+print("salida:", math.tanh(suma))` }],
+    widgetTitle: "Mueve los pesos y mira qué decide la neurona",
+    widgetNote: "El color es la salida en cada punto (x₁, x₂). La línea discontinua es donde la neurona cambia de opinión. Haz clic en el mapa para probar un punto.",
+    taskIntro: `<p>Convierte la neurona en una función. Después elige pesos y sesgo para que una neurona se comporte como la puerta lógica <b>AND</b>: salida alta solo si las dos entradas valen 1.</p>`,
+    code: `import math
+
+def neurona(pesos, entradas, sesgo):
+    # 1) suma cada peso por su entrada   2) añade el sesgo   3) aplica math.tanh
+    suma = sesgo
+    for p, x in zip(pesos, entradas):
+        suma = ___
+    return math.tanh(suma)
+
+print(neurona([1, 2], [0.5, -1], 0.1))     # debería dar ≈ -0.8854
+
+# Reto 2: elige w1, w2 y b para que la neurona sea una puerta AND
+w1 = 0
+w2 = 0
+b = 0
+def sigmoide(z):
+    return 1 / (1 + math.exp(-z))          # devuelve un número entre 0 y 1
+for a in [0, 1]:
+    for c in [0, 1]:
+        print(a, c, "->", round(sigmoide(w1 * a + w2 * c + b), 2))`,
+    solution: `import math
+
+def neurona(pesos, entradas, sesgo):
+    suma = sesgo
+    for p, x in zip(pesos, entradas):
+        suma = suma + p * x
+    return math.tanh(suma)
+
+print(neurona([1, 2], [0.5, -1], 0.1))
+
+w1 = 10
+w2 = 10
+b = -15
+def sigmoide(z):
+    return 1 / (1 + math.exp(-z))
+for a in [0, 1]:
+    for c in [0, 1]:
+        print(a, c, "->", round(sigmoide(w1 * a + w2 * c + b), 2))`,
+    hints: ["Cada vuelta suma peso por entrada: suma = suma + p * x.", "Para AND necesitas que w1 + w2 + b sea claramente positivo, pero que w1 + b, w2 + b y b sean negativos.", "Prueba w1 = 10, w2 = 10 y un sesgo b = -15."],
+    check: `def probar():
+    r = []
+    import math
+    f = U.get("neurona")
+    if not callable(f):
+        r.append(["Existe la función neurona(pesos, entradas, sesgo)", False, "Defínela con def neurona(...)."])
+    else:
+        y = _try(f, [1, 2], [0.5, -1], 0.1)
+        _t(r, "neurona([1,2], [0.5,-1], 0.1) ≈ -0.8854", _cerca(y, math.tanh(-1.4)), "Obtuviste " + repr(y) + ". Debe ser tanh(1·0.5 + 2·(-1) + 0.1).")
+        _t(r, "Con pesos 0 solo cuenta el sesgo", _cerca(_try(f, [0, 0], [3, 4], 0.5), math.tanh(0.5)), "Con pesos 0 la salida es tanh(sesgo).")
+        _t(r, "Funciona con una sola entrada", _cerca(_try(f, [3], [1], 0.5), math.tanh(3.5)), "No supongas que siempre hay dos entradas.")
+    if all(n in U for n in ("w1", "w2", "b")):
+        s = lambda a, c: 1 / (1 + math.exp(-(U["w1"] * a + U["w2"] * c + U["b"])))
+        o = [s(0, 0), s(0, 1), s(1, 0), s(1, 1)]
+        _t(r, "La neurona implementa AND", o[3] > 0.9 and o[0] < 0.1 and o[1] < 0.1 and o[2] < 0.1, "Salidas (0,0) (0,1) (1,0) (1,1): " + str([round(v, 2) for v in o]) + ". Debe ser casi [0, 0, 0, 1].")
+    else:
+        r.append(["Existen w1, w2 y b", False, "Define las tres variables."])
+    return r`,
+    outro: `Una neurona traza una frontera recta. Para curvas hace falta juntar varias, pero antes hay que ver cómo se eligen los pesos solos.`,
+  },
+  {
+    id: "descenso", module: "redes", num: 6, title: "Aprender es bajar el error", minutes: 6, widget: "gradiente",
+    goal: "Entender el descenso de gradiente y programarlo.",
+    intro: `<p>Una red aprende midiendo su <b>error</b> y ajustando sus números para que sea menor. Imagina una pelota en una montaña: la <b>pendiente</b> te dice hacia dónde baja el terreno y das un paso pequeño en esa dirección.</p>
+      <p class="formula">x = x − tasa · pendiente</p>
+      <p>La <b>tasa de aprendizaje</b> es el tamaño del paso. Si es muy pequeña, avanzas lento. Si es muy grande, te pasas del mínimo y el error se dispara.</p>`,
+    examples: [{ note: "El error es (x − 3)². Su pendiente es 2·(x − 3) y el mínimo está en x = 3.", code: `x = 0.0
+tasa = 0.1
+for paso in range(6):
+    pendiente = 2 * (x - 3)
+    x = x - tasa * pendiente
+    print(paso, round(x, 3))` }],
     widgetTitle: "Un paso a la vez",
-    widgetNote: "La función tiene dos valles. Cambia la tasa de aprendizaje y el punto de partida, y pulsa «Paso» o «Ejecutar».",
-    taskIntro: `<p>Implementa el descenso de gradiente sobre <code>f(x) = (x − 3)² + 1</code>, cuyo gradiente es <code>2(x − 3)</code>. Luego elige la tasa <code>LR</code> que llega al mínimo en solo 5 pasos.</p>`,
-    code: `// Aplica  x ← x − lr · grad(x)  durante 'pasos' veces y devuelve el x final
-function descenso(grad, x0, lr, pasos) {
-  let x = x0;
-  // tu bucle aquí
-  return x;
-}
-const g = (x) => 2 * (x - 3);
-print('lr 0.1, 50 pasos ->', descenso(g, 0, 0.1, 50));   // cerca de 3
-print('lr 1.1, 50 pasos ->', descenso(g, 0, 1.1, 50));   // diverge
+    widgetNote: "Esta curva tiene dos valles. Cambia la tasa y el punto de partida, y pulsa Paso o Ejecutar.",
+    taskIntro: `<p>Programa el descenso de gradiente como una función. Después elige la tasa <code>TASA</code> que llega al mínimo (x = 3) en solo 5 pasos.</p>`,
+    code: `def descenso(pendiente, x0, tasa, pasos):
+    x = x0
+    for _ in range(pasos):
+        x = ___           # x menos tasa por la pendiente en x
+    return x
 
-// Reto 2: ¿qué lr llega a ≈3 (error < 0.01) en solo 5 pasos desde x = 0?
-const LR = 0.1;
-print('con LR =', LR, '->', descenso(g, 0, LR, 5));`,
-    solution: `function descenso(grad, x0, lr, pasos) {
-  let x = x0;
-  for (let i = 0; i < pasos; i++) x = x - lr * grad(x);
-  return x;
-}
-const g = (x) => 2 * (x - 3);
-print('lr 0.1, 50 pasos ->', descenso(g, 0, 0.1, 50));
-print('lr 1.1, 50 pasos ->', descenso(g, 0, 1.1, 50));
+def mi_pendiente(x):
+    return 2 * (x - 3)
 
-const LR = 0.5;
-print('con LR =', LR, '->', descenso(g, 0, LR, 5));`,
-    hints: ["Dentro del bucle: x = x - lr * grad(x).", "Cada paso multiplica el error por (1 − 2·lr). ¿Qué lr lo hace 0?", "Con lr = 0.5 el error se anula en un paso. Cualquier valor entre 0.4 y 0.6 sirve."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof descenso !== "function") return [t("Existe descenso(grad, x0, lr, pasos)", false, "Todavía no está definida.")];
-      const g = (x) => 2 * (x - 3), r = [];
-      r.push(t("Un paso desde 0 con lr 0.1 da 0.6", Math.abs(descenso(g, 0, 0.1, 1) - 0.6) < 1e-9, "Con x = 0: 0 − 0.1·2·(0 − 3) = 0.6. Obtuviste " + fmt(descenso(g, 0, 0.1, 1)) + "."));
-      r.push(t("Con 50 pasos y lr 0.1 llega a 3 (error < 0.001)", Math.abs(descenso(g, 0, 0.1, 50) - 3) < 1e-3, "Obtuviste " + fmt(descenso(g, 0, 0.1, 50)) + "."));
-      r.push(t("Con lr 1.1 diverge (|x| > 1000)", Math.abs(descenso(g, 0, 1.1, 50)) > 1000, "Con lr = 1.1 cada paso multiplica el error por −1.2, así que debe crecer."));
-      if (typeof LR !== "number") r.push(t("Define LR", false, "Declara const LR = ..."));
-      else r.push(t("LR llega a 3 en 5 pasos (error < 0.01)", Math.abs(descenso(g, 0, LR, 5) - 3) < 0.01, "Con LR = " + LR + " obtienes " + fmt(descenso(g, 0, LR, 5)) + ". Cada paso multiplica el error por (1 − 2·LR)."));
-      return r;
-    },
-    outro: `Todo el entrenamiento de redes, desde esta parábola hasta un GPT, repite este paso. Lo que cambia es cómo se calcula el gradiente: eso es la retropropagación, la siguiente lección.`,
+print(descenso(mi_pendiente, 0, 0.1, 50))   # cerca de 3
+print(descenso(mi_pendiente, 0, 1.1, 50))   # se dispara
+
+# Reto 2: ¿qué tasa llega a ≈ 3 en solo 5 pasos?
+TASA = 0.1
+print(descenso(mi_pendiente, 0, TASA, 5))`,
+    solution: `def descenso(pendiente, x0, tasa, pasos):
+    x = x0
+    for _ in range(pasos):
+        x = x - tasa * pendiente(x)
+    return x
+
+def mi_pendiente(x):
+    return 2 * (x - 3)
+
+print(descenso(mi_pendiente, 0, 0.1, 50))
+print(descenso(mi_pendiente, 0, 1.1, 50))
+
+TASA = 0.5
+print(descenso(mi_pendiente, 0, TASA, 5))`,
+    hints: ["Dentro del bucle: la pendiente en x se calcula llamando a pendiente(x).", "x = x - tasa * pendiente(x)", "Con tasa 0.5 el error desaparece en un paso. Sirve cualquier valor entre 0.4 y 0.6."],
+    check: `def probar():
+    r = []
+    d = U.get("descenso")
+    if not callable(d):
+        return [["Existe descenso(pendiente, x0, tasa, pasos)", False, "Defínela con def."]]
+    g = lambda x: 2 * (x - 3)
+    v1 = _try(d, g, 0, 0.1, 1)
+    _t(r, "Un paso desde 0 con tasa 0.1 da 0.6", _cerca(v1, 0.6, 1e-9), "Obtuviste " + repr(v1) + ". Cuenta: 0 - 0.1 * 2 * (0 - 3).")
+    v2 = _try(d, g, 0, 0.1, 50)
+    _t(r, "Con 50 pasos llega a 3", _cerca(v2, 3, 1e-3), "Obtuviste " + repr(v2) + ".")
+    v3 = _try(d, g, 0, 1.1, 50)
+    _t(r, "Con tasa 1.1 se dispara", (not isinstance(v3, str)) and abs(v3) > 1000, "Con tasa 1.1 cada paso aumenta el error, así que el valor debe crecer mucho.")
+    if "TASA" in U:
+        v4 = _try(d, g, 0, U["TASA"], 5)
+        _t(r, "Tu TASA llega a 3 en 5 pasos (error < 0.01)", _cerca(v4, 3, 0.01), "Con TASA = " + repr(U["TASA"]) + " obtienes " + repr(v4) + ".")
+    else:
+        r.append(["Existe TASA", False, "Define la variable TASA."])
+    return r`,
+    outro: `Todo el entrenamiento de las redes, de esta parábola a un modelo como ChatGPT, repite este paso. Cambia cómo se calcula la pendiente, no la idea.`,
   },
   {
-    id: "backprop", num: 3, title: "Retropropagación", week: "Semana 1", minutes: 15, widget: "grafo",
-    intro: `<p>Una red es un grafo de operaciones simples. Para obtener el gradiente de la pérdida respecto a cada parámetro, se recorre el grafo <b>hacia atrás</b> multiplicando derivadas locales (la regla de la cadena).</p>
-      <p class="formula">L = ( tanh(w·x + b) − 1 )²</p>
-      <p>Dos reglas lo resumen: cada nodo reparte el gradiente que recibe según su derivada local, y si un nodo se usa varias veces, <b>los gradientes se suman</b>.</p>`,
-    widgetTitle: "El grafo de L con los números de la guía",
-    widgetNote: "Pulsa «Hacia delante» para calcular valores y «Hacia atrás» para propagar gradientes. Son los números del ejemplo de la Semana 1.",
-    taskIntro: `<p>La clase <code>Value</code> ya está en el kernel (es el <code>micrograd</code> de la guía). Construye el grafo de arriba con sus métodos y llama a <code>backward()</code>.</p>`,
-    code: `const w = new Value(0.5), x = new Value(2), b = new Value(-0.3);
-// L = (tanh(w*x + b) - 1)^2   → usa .mul  .add  .tanh  .sub  .pow
-const L = w;   // ← reemplaza por la expresión
-L.backward();
-print('dL/dw =', w.grad, ' dL/db =', b.grad, ' dL/dx =', x.grad);
+    id: "aprende", module: "redes", num: 7, title: "Tu neurona aprende sola", minutes: 8, widget: "playground",
+    goal: "Entrenar una neurona para que aprenda la puerta OR.",
+    intro: `<p>Hasta ahora elegiste los pesos tú. Aprender es dejar que el programa los ajuste solo: prueba un ejemplo, mide el error y corrige un poquito. Se repite miles de veces.</p>
+      <p>La corrección usa la idea del descenso: cada peso se mueve en proporción a <b>error × su entrada</b>, y el sesgo en proporción al <b>error</b>.</p>`,
+    examples: [{ note: "Una sola corrección, a cámara lenta. Mira cómo cambia el peso.", code: `import math
+def sigmoide(z):
+    return 1 / (1 + math.exp(-z))
 
-// Reto 2: un nodo usado dos veces. q = y*y + y con y = 3  → dq/dy = 2y + 1 = 7
-const y = new Value(3);
-const q = y;   // ← reemplaza
-q.backward();
-print('dq/dy =', y.grad, '(debería ser 7)');`,
-    solution: `const w = new Value(0.5), x = new Value(2), b = new Value(-0.3);
-const L = w.mul(x).add(b).tanh().sub(1).pow(2);
-L.backward();
-print('dL/dw =', w.grad, ' dL/db =', b.grad, ' dL/dx =', x.grad);
+w, b = 0.0, 0.0
+x, y = 1, 1                        # entrada 1, resultado deseado 1
+pred = sigmoide(w * x + b)
+print("predicción:", pred, " error:", pred - y)
+w = w - 0.5 * (pred - y) * x       # corregimos el peso
+b = b - 0.5 * (pred - y)           # y el sesgo
+print("nuevo peso:", w, " nuevo sesgo:", b)` }],
+    widgetTitle: "Con varias capas la red dibuja curvas",
+    widgetNote: "Una sola neurona solo traza rectas. Pulsa Entrenar y mira cómo una red con capas aprende las espirales. Prueba menos neuronas, o Adam como optimizador.",
+    taskIntro: `<p>Completa el entrenamiento. La neurona debe aprender la puerta <b>OR</b>: da 1 si al menos una entrada es 1.</p>`,
+    code: `import math
 
-const y = new Value(3);
-const q = y.mul(y).add(y);
-q.backward();
-print('dq/dy =', y.grad, '(debería ser 7)');`,
-    hints: ["w.mul(x) crea el nodo w·x. Encadena .add(b), luego .tanh().", "(a − 1)² se escribe a.sub(1).pow(2).", "Para q usa y.mul(y).add(y). Verás que y recibe gradiente por tres caminos y los suma."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      const r = [];
-      if (typeof w === "undefined" || typeof L === "undefined") return [t("Existen w, x, b y L", false, "Ejecuta la celda para crear los valores.")];
-      r.push(t("L ≈ 0.15652", L instanceof Value && Math.abs(L.data - 0.15652) < 1e-4, "L vale " + (L && L.data !== undefined ? fmt(L.data) : "?") + ". Revisa la expresión: (tanh(w·x + b) − 1)²."));
-      r.push(t("dL/dw ≈ −1.00449", Math.abs(w.grad + 1.00449) < 1e-3, "w.grad = " + fmt(w.grad) + ". ¿Llamaste a L.backward()?"));
-      r.push(t("dL/db ≈ −0.50225", Math.abs(b.grad + 0.50225) < 1e-3, "b.grad = " + fmt(b.grad)));
-      r.push(t("dL/dx ≈ −0.25112", Math.abs(x.grad + 0.25112) < 1e-3, "x.grad = " + fmt(x.grad)));
-      r.push(t("Tu grafo pasa el gradient check", (() => { try { return gradcheck((a, c, d) => a.mul(d).add(c).tanh().sub(1).pow(2), [0.5, -0.3, 2]) < 1e-6; } catch (e) { return false; } })(), "La función de referencia no pasó el chequeo numérico."));
-      if (typeof q === "undefined" || typeof y === "undefined") r.push(t("Existen y y q", false, "Define y y q."));
-      else r.push(t("dq/dy = 7 (los gradientes se suman)", Math.abs(y.grad - 7) < 1e-9, "y.grad = " + fmt(y.grad) + ". Con q = y·y + y, y aparece tres veces."));
-      return r;
-    },
-    outro: `Esto es lo que hace <code>loss.backward()</code> en PyTorch, sobre tensores en lugar de escalares. En la guía de la Semana 1 lo escribes completo y lo verificas con derivadas numéricas.`,
+def sigmoide(z):
+    return 1 / (1 + math.exp(-z))
+
+datos = [(0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 1)]   # (x1, x2, resultado): puerta OR
+w1, w2, b = 0.0, 0.0, 0.0
+tasa = 0.5
+
+for vuelta in range(2000):
+    for x1, x2, y in datos:
+        pred = sigmoide(w1 * x1 + w2 * x2 + b)
+        error = pred - y
+        w1 = w1 - tasa * error * ___       # peso 1: error por su entrada
+        w2 = w2 - tasa * error * ___       # peso 2: error por su entrada
+        b = b - tasa * ___                 # sesgo: solo el error
+
+for x1, x2, y in datos:
+    print(x1, x2, "->", round(sigmoide(w1 * x1 + w2 * x2 + b), 2))`,
+    solution: `import math
+
+def sigmoide(z):
+    return 1 / (1 + math.exp(-z))
+
+datos = [(0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 1)]
+w1, w2, b = 0.0, 0.0, 0.0
+tasa = 0.5
+
+for vuelta in range(2000):
+    for x1, x2, y in datos:
+        pred = sigmoide(w1 * x1 + w2 * x2 + b)
+        error = pred - y
+        w1 = w1 - tasa * error * x1
+        w2 = w2 - tasa * error * x2
+        b = b - tasa * error
+
+for x1, x2, y in datos:
+    print(x1, x2, "->", round(sigmoide(w1 * x1 + w2 * x2 + b), 2))`,
+    hints: ["El peso 1 se corrige con el error por x1; el peso 2, con el error por x2.", "El sesgo no multiplica por ninguna entrada: solo usa el error.", "w1 = w1 - tasa * error * x1  ·  w2 = w2 - tasa * error * x2  ·  b = b - tasa * error"],
+    check: `def probar():
+    r = []
+    import math
+    if not all(n in U for n in ("w1", "w2", "b")):
+        return [["Existen w1, w2 y b", False, "Ejecuta la celda completa para entrenar."]]
+    w1, w2, b = U["w1"], U["w2"], U["b"]
+    p = lambda x1, x2: 1 / (1 + math.exp(-(w1 * x1 + w2 * x2 + b)))
+    _t(r, "Los pesos cambiaron (la neurona aprendió algo)", abs(w1) + abs(w2) > 0.5, "Los pesos siguen casi en 0. ¿Completaste los tres huecos?")
+    _t(r, "(0, 0) → casi 0", p(0, 0) < 0.25, "Da " + str(round(p(0, 0), 2)) + ". Debería ser menor que 0.25.")
+    for x1, x2 in [(0, 1), (1, 0), (1, 1)]:
+        _t(r, "(" + str(x1) + ", " + str(x2) + ") → casi 1", p(x1, x2) > 0.75, "Da " + str(round(p(x1, x2), 2)) + ". Debería ser mayor que 0.75.")
+    return r`,
+    outro: `Eso es entrenar: predecir, medir el error y corregir. Una red de millones de neuronas hace lo mismo, con la ayuda de la retropropagación para calcular todas las correcciones.`,
+  },
+
+  // ============================================================ MÓDULO 3 · IA GENERATIVA
+  {
+    id: "siguiente", module: "generativa", num: 8, title: "Predecir la siguiente letra", minutes: 7, widget: "lenguaje",
+    goal: "Construir un mini modelo de lenguaje por conteo.",
+    intro: `<p>Un modelo de lenguaje, como el de un chat, hace una sola cosa: <b>predecir qué viene después</b>. La versión más simple es contar: en un texto, ¿qué letra aparece después de la «e»?</p>
+      <p>Guardamos los conteos en un <b>diccionario</b> (pares clave → valor). Los modelos grandes hacen lo mismo con redes neuronales y muchísimo más contexto.</p>`,
+    examples: [{ note: "Cuenta qué letras vienen después de «e» en una frase.", code: `texto = "el gato come pescado. el gato mira el pez."
+conteo = {}
+for i in range(len(texto) - 1):
+    if texto[i] == "e":
+        sig = texto[i + 1]
+        conteo[sig] = conteo.get(sig, 0) + 1
+print(conteo)` }],
+    widgetTitle: "Más contexto, menos error",
+    widgetNote: "Un modelo de conteo con contexto de n letras. La línea verde es el mínimo posible para este texto. Genera frases y cambia la temperatura.",
+    taskIntro: `<p>Escribe <code>siguiente(texto, letra)</code>, que devuelve la letra que más veces aparece justo después de <code>letra</code>. El conteo ya está hecho; completa la parte que elige la mejor.</p>`,
+    code: `def siguiente(texto, letra):
+    conteo = {}
+    for i in range(len(texto) - 1):
+        if texto[i] == letra:
+            sig = texto[i + 1]
+            conteo[sig] = conteo.get(sig, 0) + 1
+    mejor = ""
+    mejor_n = 0
+    for sig in conteo:
+        if conteo[sig] > mejor_n:
+            mejor = ___         # la letra que va ganando
+            mejor_n = ___       # cuántas veces apareció
+    return mejor
+
+print(siguiente("abababac", "a"))
+print(siguiente("el gato come pescado", "e"))`,
+    solution: `def siguiente(texto, letra):
+    conteo = {}
+    for i in range(len(texto) - 1):
+        if texto[i] == letra:
+            sig = texto[i + 1]
+            conteo[sig] = conteo.get(sig, 0) + 1
+    mejor = ""
+    mejor_n = 0
+    for sig in conteo:
+        if conteo[sig] > mejor_n:
+            mejor = sig
+            mejor_n = conteo[sig]
+    return mejor
+
+print(siguiente("abababac", "a"))
+print(siguiente("el gato come pescado", "e"))`,
+    hints: ["Cuando una letra supera el mejor conteo, pasa a ser la nueva mejor.", "mejor = sig  y  mejor_n = conteo[sig]"],
+    check: `def probar():
+    r = []
+    f = U.get("siguiente")
+    if not callable(f):
+        return [["Existe siguiente(texto, letra)", False, "Define def siguiente(texto, letra)."]]
+    for texto, letra, esperado in [("abababac", "a", "b"), ("hola hola", "h", "o"), ("el gato come", "c", "o"), ("xyz", "q", "")]:
+        _t(r, "siguiente(\\"" + texto + "\\", \\"" + letra + "\\") = \\"" + esperado + "\\"", _try(f, texto, letra) == esperado, "Obtuviste " + repr(_try(f, texto, letra)) + ".")
+    return r`,
+    outro: `Esto es un modelo de lenguaje de verdad, el más pequeño posible. ChatGPT y similares cambian los conteos por una red neuronal enorme que mira miles de palabras de contexto.`,
   },
   {
-    id: "red", num: 4, title: "Tu primera red", week: "Semana 2", minutes: 15, widget: "playground",
-    intro: `<p>Con una sola neurona la frontera es una recta. Una red con <b>capas ocultas</b> compone muchas neuronas y puede dibujar fronteras curvas, como estas espirales entrelazadas.</p>
-      <p>Cada paso de entrenamiento es el ciclo de siempre: <b>forward</b> (predecir), <b>pérdida</b> (medir el error), <b>backward</b> (gradientes) y <b>actualizar</b> los pesos.</p>`,
-    widgetTitle: "Entrena una red en vivo",
-    widgetNote: "Prueba una red muy pequeña sobre espirales y luego agrándala. Compara SGD con Adam. Todo corre en tu navegador.",
-    taskIntro: `<p>El código de abajo entrena una red diminuta y se queda corto. Cámbialo hasta superar el <b>95 %</b> de precisión en las espirales, y que además generalice a puntos nuevos (el reto los comprueba con otra semilla).</p>`,
-    code: `const data = spirals(100, 3, 0.2, 0);          // 300 puntos, 3 clases
-const red = new MLP([2, 4, 3], { act: 'tanh', seed: 1 });
-for (let paso = 0; paso <= 200; paso++) {
-  const r = red.trainStep(data.X, data.y, 0.1); // lote completo, lr 0.1
-  if (paso % 50 === 0) print('paso', paso, ' pérdida', r.loss, ' precisión', r.acc);
-}
-plotBoundary(red, data);
-// Prueba: más neuronas, más capas, más pasos, otra tasa de aprendizaje, optim: 'adam'`,
-    solution: `const data = spirals(100, 3, 0.2, 0);
-const red = new MLP([2, 16, 16, 3], { act: 'tanh', seed: 1 });
-for (let paso = 0; paso <= 800; paso++) {
-  const r = red.trainStep(data.X, data.y, 0.5);
-  if (paso % 200 === 0) print('paso', paso, ' pérdida', r.loss, ' precisión', r.acc);
-}
-plotBoundary(red, data);`,
-    hints: ["Con 4 neuronas ocultas no alcanza la capacidad para las espirales. Prueba [2, 16, 16, 3].", "200 pasos con lr 0.1 apenas empiezan a aprender. Sube el lr a 0.3–0.5 o usa más pasos.", "Con optim: 'adam' y lr 0.02 suele converger más rápido que con SGD."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof red === "undefined" || typeof data === "undefined" || !(red instanceof MLP)) return [t("Existen data y red (un MLP)", false, "Ejecuta la celda para crearlos.")];
-      const tr = red.evaluate(data.X, data.y), nuevo = spirals(100, 3, 0.2, 99), te = red.evaluate(nuevo.X, nuevo.y);
-      return [
-        t("Precisión en entrenamiento ≥ 95 %", tr.acc >= 0.95, "Ahora tienes " + (tr.acc * 100).toFixed(1) + " %. Agranda la red o entrena más."),
-        t("Precisión en datos nuevos ≥ 88 %", te.acc >= 0.88, "En datos nuevos: " + (te.acc * 100).toFixed(1) + " %. Si entrenamiento es alto y esto bajo, hay sobreajuste."),
-        t("La pérdida es menor que ln 3 ≈ 1.099", tr.loss < Math.log(3), "Una red que no aprendió tiene pérdida ≈ ln(3) = 1.099."),
-      ];
-    },
-    outro: `Ahora sabes cómo se ve entrenar una red de verdad. En la <b>Semana 2</b> escribes este mismo MLP con NumPy y backprop manual, y en la <b>Semana 3</b> aprendes a diagnosticar cuando no converge.`,
-  },
-  {
-    id: "init", num: 5, title: "Inicializar bien", week: "Semana 3", minutes: 15, widget: "init",
-    intro: `<p>Si los pesos iniciales son demasiado pequeños, las señales se apagan capa tras capa. Si son demasiado grandes, explotan o saturan. En ambos casos el gradiente no llega y la red no aprende.</p>
-      <p class="formula">Xavier: Var(w) = 1/fan_in &nbsp;·&nbsp; He: Var(w) = 2/fan_in</p>
-      <p>La idea: que la <b>desviación estándar</b> de las activaciones se mantenga más o menos igual a través de las capas. ReLU anula la mitad de las señales, por eso He lleva un 2.</p>`,
-    widgetTitle: "30 capas, cuatro inicializaciones",
-    widgetNote: "Muestra la desviación estándar de las activaciones en cada capa (escala logarítmica). Cambia la activación y compara.",
-    taskIntro: `<p>Escribe las funciones que devuelven la desviación estándar de los pesos para cada activación. El reto simula 30 capas de ancho 128 y exige que la señal sobreviva sin desvanecerse ni explotar.</p>`,
-    code: `function desvPorCapa(escala, act, capas = 30, ancho = 128) {
-  let h = randn(64, ancho, 1);
-  const res = [];
-  for (let l = 0; l < capas; l++) {
-    const W = randn(ancho, ancho, 100 + l).map(f => f.map(v => v * escala(ancho)));
-    h = matmul(h, W).map(f => f.map(act));
-    res.push(std(h.flat()));
-  }
-  return res;
-}
-// Devuelven la desviación estándar de los pesos para una capa con fanIn entradas
-function escalaRelu(fanIn) { return 1; }   // ← cámbiala
-function escalaTanh(fanIn) { return 1; }   // ← cámbiala
+    id: "temperatura", module: "generativa", num: 9, title: "Temperatura: orden o creatividad", minutes: 6, widget: "temperatura",
+    goal: "Controlar cuánto se arriesga un modelo al elegir.",
+    intro: `<p>El modelo no elige siempre la opción más probable: <b>sortea</b> según las probabilidades. La <b>temperatura</b> controla ese sorteo. Con temperatura baja casi siempre gana la más probable (respuestas previsibles). Con temperatura alta hay más variedad, y también más errores.</p>
+      <p>Se consigue elevando cada probabilidad a <code>1 / T</code> y volviendo a repartir para que sumen 1.</p>`,
+    examples: [{ note: "Mira cómo cambian las probabilidades con la temperatura.", code: `probs = [0.1, 0.6, 0.3]
+for T in [0.2, 1, 5]:
+    pesos = [p ** (1 / T) for p in probs]     # forma corta de hacer un for
+    total = sum(pesos)
+    print("T =", T, [round(p / total, 2) for p in pesos])` }],
+    widgetTitle: "Mueve la temperatura",
+    widgetNote: "Cada barra es la probabilidad de esa opción después de aplicar la temperatura. Al lado de cada letra ves cuánto valía antes.",
+    taskIntro: `<p>Completa <code>muestrear</code>: recibe las probabilidades, la temperatura y un número al azar <code>u</code> entre 0 y 1, y devuelve la posición elegida.</p>`,
+    code: `def muestrear(probs, T, u):
+    pesos = []
+    for p in probs:
+        pesos.append(___)            # p elevado a 1 / T
+    total = sum(pesos)
+    acumulado = 0
+    for i in range(len(pesos)):
+        acumulado = acumulado + pesos[i] / total
+        if u < acumulado:
+            return ___               # la posición elegida
+    return len(pesos) - 1
 
-const relu = (z) => Math.max(0, z);
-const sr = desvPorCapa(escalaRelu, relu), st = desvPorCapa(escalaTanh, Math.tanh);
-print('ReLU, capa 30:', sr[29], ' tanh, capa 30:', st[29]);
-plot({ type: 'line', title: 'std de activaciones por capa', ylog: true,
-       series: [{ name: 'ReLU', y: sr }, { name: 'tanh', y: st }] });`,
-    solution: `function desvPorCapa(escala, act, capas = 30, ancho = 128) {
-  let h = randn(64, ancho, 1);
-  const res = [];
-  for (let l = 0; l < capas; l++) {
-    const W = randn(ancho, ancho, 100 + l).map(f => f.map(v => v * escala(ancho)));
-    h = matmul(h, W).map(f => f.map(act));
-    res.push(std(h.flat()));
-  }
-  return res;
-}
-function escalaRelu(fanIn) { return Math.sqrt(2 / fanIn); }
-function escalaTanh(fanIn) { return (5 / 3) / Math.sqrt(fanIn); }
+p = [0.1, 0.6, 0.3]
+print(muestrear(p, 1, 0.05), muestrear(p, 1, 0.5), muestrear(p, 1, 0.9))   # 0 1 2
+print(muestrear(p, 0.05, 0.01))                                           # casi siempre la mejor: 1`,
+    solution: `def muestrear(probs, T, u):
+    pesos = []
+    for p in probs:
+        pesos.append(p ** (1 / T))
+    total = sum(pesos)
+    acumulado = 0
+    for i in range(len(pesos)):
+        acumulado = acumulado + pesos[i] / total
+        if u < acumulado:
+            return i
+    return len(pesos) - 1
 
-const relu = (z) => Math.max(0, z);
-const sr = desvPorCapa(escalaRelu, relu), st = desvPorCapa(escalaTanh, Math.tanh);
-print('ReLU, capa 30:', sr[29], ' tanh, capa 30:', st[29]);
-plot({ type: 'line', title: 'std de activaciones por capa', ylog: true,
-       series: [{ name: 'ReLU', y: sr }, { name: 'tanh', y: st }] });`,
-    hints: ["Para ReLU usa He: Math.sqrt(2 / fanIn).", "Para tanh, Xavier (Math.sqrt(1 / fanIn)) se contrae despacio. Prueba la ganancia 5/3: (5/3) / Math.sqrt(fanIn), o simplemente He.", "Mira la gráfica: la línea debe quedarse aproximadamente horizontal."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof escalaRelu !== "function" || typeof escalaTanh !== "function") return [t("Existen escalaRelu y escalaTanh", false, "Define ambas funciones.")];
-      const sim = (escala, act) => { let h = randn(64, 128, 1), s = 0; for (let l = 0; l < 30; l++) { const sc = escala(128); h = matmul(h, randn(128, 128, 100 + l).map((f) => f.map((v) => v * sc))).map((f) => f.map(act)); s = std(h.flat()); } return s; };
-      const a = sim(escalaRelu, (z) => Math.max(0, z)), b = sim(escalaTanh, Math.tanh);
-      return [
-        t("ReLU: std en la capa 30 entre 0.3 y 3", a > 0.3 && a < 3, "Tu std final es " + fmt(a) + ". Si es casi 0 la señal se apagó; si es enorme, explotó."),
-        t("tanh: std en la capa 30 entre 0.3 y 1", b > 0.3 && b < 1, "Tu std final es " + fmt(b) + ". Con tanh, std ≈ 1 significa saturación; casi 0, desvanecimiento."),
-      ];
-    },
-    outro: `Hoy las normalizaciones (LayerNorm, RMSNorm) y las conexiones residuales hacen este problema mucho menos frágil, pero la inicialización sigue importando. Lo verás completo en la <b>Semana 3</b>.`,
+p = [0.1, 0.6, 0.3]
+print(muestrear(p, 1, 0.05), muestrear(p, 1, 0.5), muestrear(p, 1, 0.9))
+print(muestrear(p, 0.05, 0.01))`,
+    hints: ["El primer hueco es p ** (1 / T).", "Cuando u cae dentro del tramo acumulado, devuelve la posición i.", "pesos.append(p ** (1 / T))  y  return i"],
+    check: `def probar():
+    r = []
+    f = U.get("muestrear")
+    if not callable(f):
+        return [["Existe muestrear(probs, T, u)", False, "Define def muestrear(probs, T, u)."]]
+    p = [0.1, 0.6, 0.3]
+    a = [_try(f, p, 1, u) for u in (0.05, 0.5, 0.9)]
+    _t(r, "T = 1 respeta las probabilidades (u = 0.05, 0.5, 0.9 → 0, 1, 2)", a == [0, 1, 2], "Obtuviste " + str(a) + ". Con T = 1 los tramos acumulados son 0.1 y 0.7.")
+    b = [_try(f, p, 0.05, u) for u in (0.01, 0.4, 0.99)]
+    _t(r, "Con T muy baja gana siempre la más probable", b == [1, 1, 1], "Obtuviste " + str(b) + ". Con T = 0.05 debe salir siempre la posición 1.")
+    c = [_try(f, p, 100, u) for u in (0.2, 0.5, 0.9)]
+    _t(r, "Con T muy alta casi todo da igual (tercios)", c == [0, 1, 2], "Obtuviste " + str(c) + ". Con T = 100 las tres opciones son casi equiprobables.")
+    return r`,
+    outro: `Esa es la perilla de «creatividad» de los chats: temperatura baja para datos y código, más alta para ideas y poesía.`,
   },
   {
-    id: "atencion", num: 6, title: "Atención", week: "Semana 5", minutes: 20, widget: "atencion",
-    intro: `<p>La atención deja que cada token mire a los demás y tome de ellos una mezcla ponderada de información. Cada token produce una consulta <b>Q</b>, una clave <b>K</b> y un valor <b>V</b>:</p>
-      <p class="formula">Atención(Q, K, V) = softmax( Q·Kᵀ / √d + M ) · V</p>
-      <p>La máscara causal <b>M</b> impide mirar al futuro (necesaria para generar texto). Dividir por √d evita que los productos punto crezcan con la dimensión y que el softmax se vuelva casi un «uno-caliente» con gradientes diminutos.</p>`,
-    widgetTitle: "El mapa de atención de una frase",
-    widgetNote: "Cada fila es un token y cuánto atiende a cada columna. Sube la dimensión d y quita el escalado: las filas se vuelven casi 0/1.",
-    taskIntro: `<p>Implementa la función de atención completa con las utilidades del kernel (<code>matmul</code>, <code>transpose</code>, <code>softmax</code>). Debe devolver la salida y los pesos.</p>`,
-    code: `// Q, K, V: matrices T×d (arreglos de arreglos). Devuelve { salida, pesos }
-function atencion(Q, K, V, causal = true) {
-  const T = Q.length, d = Q[0].length;
-  // 1) scores = Q·Kᵀ / √d     2) máscara causal: pon -Infinity cuando j > i
-  // 3) pesos = softmax por fila  4) salida = pesos · V
-  return { salida: V, pesos: zeros(T, T) };
-}
-const Q = randn(4, 3, 1), K = randn(4, 3, 2), V = randn(4, 3, 3);
-const r = atencion(Q, K, V);
-print('pesos (fila 0):', r.pesos[0]);
-print('pesos (fila 3):', r.pesos[3]);
-plot({ type: 'heat', title: 'pesos de atención', matrix: r.pesos });`,
-    solution: `function atencion(Q, K, V, causal = true) {
-  const T = Q.length, d = Q[0].length;
-  const scores = matmul(Q, transpose(K)).map(f => f.map(s => s / Math.sqrt(d)));
-  const pesos = scores.map((fila, i) => softmax(fila.map((s, j) => (causal && j > i ? -Infinity : s))));
-  return { salida: matmul(pesos, V), pesos };
-}
-const Q = randn(4, 3, 1), K = randn(4, 3, 2), V = randn(4, 3, 3);
-const r = atencion(Q, K, V);
-print('pesos (fila 0):', r.pesos[0]);
-print('pesos (fila 3):', r.pesos[3]);
-plot({ type: 'heat', title: 'pesos de atención', matrix: r.pesos });`,
-    hints: ["scores = matmul(Q, transpose(K)) y luego divide cada elemento por Math.sqrt(d).", "Para la máscara: recorre cada fila i y sustituye por -Infinity los elementos con j > i, antes del softmax.", "salida = matmul(pesos, V). Cada fila de pesos suma 1."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof atencion !== "function") return [t("Existe atencion(Q, K, V, causal)", false, "Todavía no está definida.")];
-      const Q = randn(5, 4, 11), K = randn(5, 4, 12), V = randn(5, 4, 13), r = [];
-      let res;
-      try { res = atencion(Q, K, V, true); } catch (e) { return [t("La función se ejecuta sin errores", false, String(e.message))]; }
-      if (!res || !res.pesos || !res.salida) return [t("Devuelve { salida, pesos }", false, "Debe devolver un objeto con esas dos propiedades.")];
-      const ref = (causal) => { const S = matmul(Q, transpose(K)).map((f) => f.map((s) => s / 2)); const P = S.map((f, i) => softmax(f.map((s, j) => (causal && j > i ? -Infinity : s)))); return { P, O: matmul(P, V) }; };
-      const e1 = ref(true), maxd = (A, B) => Math.max(...A.flat().map((x, i) => Math.abs(x - B.flat()[i])));
-      r.push(t("Las filas de pesos suman 1", res.pesos.every((f) => Math.abs(sum(f) - 1) < 1e-9), "Aplica softmax a cada fila."));
-      r.push(t("Máscara causal: el futuro tiene peso 0", res.pesos.every((f, i) => f.every((p, j) => j <= i || Math.abs(p) < 1e-12)), "Hay peso en posiciones j > i."));
-      r.push(t("Los pesos coinciden con la referencia", maxd(res.pesos, e1.P) < 1e-6, "Revisa que dividas por √d (d = " + Q[0].length + ") antes del softmax."));
-      r.push(t("La salida coincide con la referencia", maxd(res.salida, e1.O) < 1e-6, "salida = pesos · V."));
-      const sin = atencion(Q, K, V, false), e2 = ref(false);
-      r.push(t("Con causal = false mira todo el contexto", maxd(sin.pesos, e2.P) < 1e-6, "Cuando causal es false no debes enmascarar."));
-      return r;
-    },
-    outro: `Esta función, repetida en varias cabezas con proyecciones aprendidas, más una MLP y conexiones residuales, es un bloque Transformer. La <b>Semana 5</b> lo implementa completo, con RoPE y GQA.`,
-  },
-  {
-    id: "lenguaje", num: 7, title: "Modelos de lenguaje", week: "Semana 3 y 5", minutes: 15, widget: "lenguaje",
-    intro: `<p>Un modelo de lenguaje asigna probabilidades al siguiente carácter (o palabra) dado el contexto. Se entrena minimizando la <b>entropía cruzada</b> y la métrica clave es esa pérdida media, en nats por carácter.</p>
-      <p>Aquí el texto sale de una gramática diminuta cuya entropía conocemos: <b>ningún modelo puede bajar de ese valor</b>. Eso permite saber exactamente cuánto falta.</p>
-      <p>Para generar, se elige el siguiente carácter al azar según las probabilidades. La <b>temperatura</b> τ las reescala: τ pequeña vuelve el muestreo casi determinista, τ grande lo acerca a un sorteo uniforme.</p>`,
-    widgetTitle: "Más contexto, menos pérdida",
-    widgetNote: "Un modelo de conteo con contexto de n caracteres. Mira cómo la pérdida baja hacia la cota teórica y genera frases con distintas temperaturas.",
-    taskIntro: `<p>Implementa el muestreo con temperatura. Recibe un arreglo de probabilidades, la temperatura y un número aleatorio <code>u</code> en [0, 1) (así el reto es determinista), y devuelve el índice elegido.</p>`,
-    code: `// probs: probabilidades que suman 1.  T: temperatura.  u: número en [0,1)
-// 1) reescala: q ∝ probs^(1/T)  (equivale a softmax de log(probs)/T)
-// 2) recorre la suma acumulada y devuelve el primer índice con u < acumulado
-function muestrear(probs, T, u) {
-  return 0;
-}
-const p = [0.1, 0.6, 0.3];
-print('T=1, u=0.05 ->', muestrear(p, 1, 0.05), ' u=0.5 ->', muestrear(p, 1, 0.5), ' u=0.9 ->', muestrear(p, 1, 0.9));
-print('T=0.05 (casi argmax), u=0.01 ->', muestrear(p, 0.05, 0.01));
-
-// ¿Cuántas veces sale cada índice con T = 0.5? (1000 sorteos)
-const g = rng(3), cuenta = [0, 0, 0];
-for (let i = 0; i < 1000; i++) cuenta[muestrear(p, 0.5, g.next())]++;
-print('T=0.5 ->', cuenta);`,
-    solution: `function muestrear(probs, T, u) {
-  const q = softmax(probs.map(p => Math.log(p + 1e-12) / T));
-  let acum = 0;
-  for (let i = 0; i < q.length; i++) {
-    acum += q[i];
-    if (u < acum) return i;
-  }
-  return q.length - 1;
-}
-const p = [0.1, 0.6, 0.3];
-print('T=1, u=0.05 ->', muestrear(p, 1, 0.05), ' u=0.5 ->', muestrear(p, 1, 0.5), ' u=0.9 ->', muestrear(p, 1, 0.9));
-print('T=0.05 (casi argmax), u=0.01 ->', muestrear(p, 0.05, 0.01));
-const g = rng(3), cuenta = [0, 0, 0];
-for (let i = 0; i < 1000; i++) cuenta[muestrear(p, 0.5, g.next())]++;
-print('T=0.5 ->', cuenta);`,
-    hints: ["softmax(probs.map(p => Math.log(p) / T)) hace el reescalado. Suma 1 por construcción.", "Con T pequeña, el cociente log(p)/T separa mucho los valores y el softmax se vuelve casi un 1 en el más probable.", "Acumula q[0], q[0]+q[1], … y devuelve el primer i con u < acumulado."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof muestrear !== "function") return [t("Existe muestrear(probs, T, u)", false, "Todavía no está definida.")];
-      const p = [0.1, 0.6, 0.3], r = [];
-      r.push(t("T = 1 respeta las probabilidades (u = 0.05, 0.5, 0.9 → 0, 1, 2)", muestrear(p, 1, 0.05) === 0 && muestrear(p, 1, 0.5) === 1 && muestrear(p, 1, 0.9) === 2, "Obtuviste " + fmt([muestrear(p, 1, 0.05), muestrear(p, 1, 0.5), muestrear(p, 1, 0.9)]) + ". Con T = 1 los umbrales acumulados son 0.1 y 0.7."));
-      r.push(t("T muy pequeña elige siempre el más probable", [0.01, 0.4, 0.99].every((u) => muestrear(p, 0.05, u) === 1), "Con T = 0.05 debería salir siempre el índice 1."));
-      r.push(t("T muy grande se acerca a un sorteo uniforme", muestrear(p, 100, 0.2) === 0 && muestrear(p, 100, 0.5) === 1 && muestrear(p, 100, 0.9) === 2, "Con T = 100 las tres opciones son casi equiprobables (tercios)."));
-      const g = rng(5), c = [0, 0, 0];
-      for (let i = 0; i < 4000; i++) c[muestrear(p, 1, g.next())]++;
-      r.push(t("Con T = 1, las frecuencias se parecen a [0.1, 0.6, 0.3]", Math.abs(c[0] / 4000 - 0.1) < 0.03 && Math.abs(c[1] / 4000 - 0.6) < 0.03, "Frecuencias observadas: " + fmt(c.map((x) => x / 4000))));
-      return r;
-    },
-    outro: `Esta es literalmente la última línea de <code>GPT.generate</code> en la guía de la Semana 5. La pérdida contra la cota es la prueba de corrección de la Semana 3: tu GPT de 335 mil parámetros llega a 0,232 frente a 0,203.`,
-  },
-  {
-    id: "difusion", num: 8, title: "Difusión", week: "Semana 7", minutes: 20, widget: "difusion",
-    intro: `<p>Un modelo de difusión aprende a <b>quitar ruido</b>. Primero se define un proceso que destruye los datos añadiendo ruido gaussiano poco a poco. Gracias a una fórmula cerrada, se salta a cualquier paso t directamente:</p>
-      <p class="formula">xₜ = √ᾱₜ · x₀ + √(1 − ᾱₜ) · ε &nbsp;&nbsp; con ᾱₜ = ∏ (1 − βₛ)</p>
-      <p>Una red aprende a predecir el ruido ε en cada nivel. Para generar, se parte de ruido puro y se retrocede paso a paso.</p>`,
+    id: "difusion", module: "generativa", num: 10, title: "De ruido a imagen", minutes: 6, widget: "difusion",
+    goal: "Entender y programar el truco de los generadores de imágenes.",
+    intro: `<p>Generadores como Stable Diffusion aprenden a <b>quitar ruido</b>. Para entrenarlos, primero se destruye la imagen mezclándola con ruido aleatorio. Después, una red aprende a deshacer cada paso. Para crear algo nuevo, se parte de ruido puro y se va limpiando.</p>
+      <p class="formula">mezcla = √ᾱ · imagen + √(1 − ᾱ) · ruido</p>
+      <p><code>ᾱ</code> («alfa barra») es la fracción de imagen que queda: empieza en 1 y baja casi a 0.</p>`,
+    examples: [{ note: "Un solo píxel con valor 1 que se va llenando de ruido.", code: `import math, random
+imagen = 1.0
+for queda in [1.0, 0.5, 0.1, 0.0]:
+    ruido = random.random() * 2 - 1
+    mezcla = math.sqrt(queda) * imagen + math.sqrt(1 - queda) * ruido
+    print("queda", queda, "->", round(mezcla, 2))` }],
     widgetTitle: "Destruir y reconstruir una espiral",
-    widgetNote: "Arrastra t para ver cómo el ruido borra la forma. Con «Generar» el proceso inverso parte de ruido y lo ordena. Aquí usamos el denoiser ideal (exacto para este conjunto de puntos); una red neuronal lo aproxima y generaliza.",
-    taskIntro: `<p>Implementa las dos piezas matemáticas del proceso directo: el calendario acumulado <code>ᾱ</code> y el paso de ruidado. El reto usa el mismo calendario que <code>ddpm_2d.py</code> en la guía.</p>`,
-    code: `// betas: arreglo de varianzas. Devuelve ᾱ_t = producto de (1 − β_s) hasta t
-function alphaBarra(betas) {
-  return betas.map(() => 1);
-}
-// x_t = √ᾱ · x0 + √(1 − ᾱ) · ε
-function ruidar(x0, abT, eps) {
-  return x0;
-}
-const betas = linspace(1e-4, 0.06, 200);
-const ab = alphaBarra(betas);
-print('ᾱ al final:', ab[199], '(en la guía ≈ 0.0022)');
-print('ruidar(1, 0.25, 2) =', ruidar(1, 0.25, 2), '(esperado ≈ 2.2320)');
-plot({ type: 'line', title: 'ᾱ_t y 1 − ᾱ_t', series: [{ name: 'ᾱ', y: ab }, { name: '1 − ᾱ', y: ab.map(a => 1 - a) }] });`,
-    solution: `function alphaBarra(betas) {
-  let p = 1;
-  return betas.map((b) => (p *= 1 - b));
-}
-function ruidar(x0, abT, eps) {
-  return Math.sqrt(abT) * x0 + Math.sqrt(1 - abT) * eps;
-}
-const betas = linspace(1e-4, 0.06, 200);
-const ab = alphaBarra(betas);
-print('ᾱ al final:', ab[199], '(en la guía ≈ 0.0022)');
-print('ruidar(1, 0.25, 2) =', ruidar(1, 0.25, 2), '(esperado ≈ 2.2320)');
-plot({ type: 'line', title: 'ᾱ_t y 1 − ᾱ_t', series: [{ name: 'ᾱ', y: ab }, { name: '1 − ᾱ', y: ab.map(a => 1 - a) }] });`,
-    hints: ["Mantén un acumulador p que empieza en 1 y se multiplica por (1 − β) en cada elemento.", "ruidar: Math.sqrt(abT) * x0 + Math.sqrt(1 - abT) * eps.", "ᾱ_T debe quedar muy cerca de 0: al final solo queda ruido."],
-    check: function () {
-      const t = (n, ok, m) => ({ name: n, ok: !!ok, msg: ok ? "" : m });
-      if (typeof alphaBarra !== "function" || typeof ruidar !== "function") return [t("Existen alphaBarra y ruidar", false, "Define ambas funciones.")];
-      const betas = linspace(1e-4, 0.06, 200), ab = alphaBarra(betas), r = [];
-      r.push(t("ᾱ₁ = 1 − β₁", Math.abs(ab[0] - (1 - 1e-4)) < 1e-12, "ab[0] = " + fmt(ab[0])));
-      r.push(t("ᾱ decrece y ᾱ_T ≈ 0.00217", ab.every((a, i) => i === 0 || a < ab[i - 1]) && Math.abs(ab[199] - 0.002167) < 2e-5, "ab[199] = " + fmt(ab[199])));
-      r.push(t("ruidar(1, 0.25, 2) ≈ 2.23205", Math.abs(ruidar(1, 0.25, 2) - 2.2320508) < 1e-6, "Obtuviste " + fmt(ruidar(1, 0.25, 2))));
-      const g = rng(7), n = 20000, a = ab[99], xs = [];
-      for (let i = 0; i < n; i++) xs.push(ruidar(0.7, a, g.normal()));
-      r.push(t("Media = √ᾱ·x₀ y varianza = 1 − ᾱ", Math.abs(mean(xs) - Math.sqrt(a) * 0.7) < 0.02 && Math.abs(std(xs) ** 2 - (1 - a)) < 0.03, "Media " + fmt(mean(xs)) + ", varianza " + fmt(std(xs) ** 2) + "; esperadas " + fmt(Math.sqrt(a) * 0.7) + " y " + fmt(1 - a)));
-      return r;
-    },
-    outro: `En la guía de la <b>Semana 7</b> entrenas una red que predice ε y muestreas con DDPM y DDIM sobre esta misma espiral y sobre imágenes. Lo que ves aquí con el denoiser ideal es lo que esa red aprende a aproximar.`,
+    widgetNote: "Arrastra t para llenar de ruido los puntos azules. «Generar» parte de ruido y lo ordena paso a paso (aquí con un limpiador ideal; una red lo aprende).",
+    taskIntro: `<p>Programa las dos piezas: cuánta imagen queda en cada paso (<code>alpha_barra</code>) y la mezcla con ruido (<code>ruidar</code>).</p>`,
+    code: `import math
+
+betas = [0.0001 + (0.06 - 0.0001) * i / 199 for i in range(200)]   # ruido añadido en cada paso
+
+def alpha_barra(betas):
+    resultado = []
+    p = 1
+    for b in betas:
+        p = ___            # lo que llevas por (1 - b)
+        resultado.append(p)
+    return resultado
+
+def ruidar(x0, ab, ruido):
+    return ___             # raiz(ab) * x0 + raiz(1 - ab) * ruido
+
+ab = alpha_barra(betas)
+print("al final queda:", ab[199])      # casi 0
+print(ruidar(1, 0.25, 2))              # ≈ 2.2320
+grafica(ab, "fracción de imagen que queda")`,
+    solution: `import math
+
+betas = [0.0001 + (0.06 - 0.0001) * i / 199 for i in range(200)]
+
+def alpha_barra(betas):
+    resultado = []
+    p = 1
+    for b in betas:
+        p = p * (1 - b)
+        resultado.append(p)
+    return resultado
+
+def ruidar(x0, ab, ruido):
+    return math.sqrt(ab) * x0 + math.sqrt(1 - ab) * ruido
+
+ab = alpha_barra(betas)
+print("al final queda:", ab[199])
+print(ruidar(1, 0.25, 2))
+grafica(ab, "fracción de imagen que queda")`,
+    hints: ["Cada paso multiplica lo acumulado por (1 - b).", "Para la mezcla usa math.sqrt dos veces.", "p = p * (1 - b)  ·  return math.sqrt(ab) * x0 + math.sqrt(1 - ab) * ruido"],
+    check: `def probar():
+    r = []
+    import math, random
+    if not (callable(U.get("alpha_barra")) and callable(U.get("ruidar"))):
+        return [["Existen alpha_barra y ruidar", False, "Define las dos funciones."]]
+    betas = [0.0001 + (0.06 - 0.0001) * i / 199 for i in range(200)]
+    ab = _try(U["alpha_barra"], betas)
+    if isinstance(ab, str):
+        return [["alpha_barra se ejecuta sin errores", False, ab]]
+    _t(r, "alpha_barra(betas)[0] = 1 - beta0", _cerca(ab[0], 1 - betas[0], 1e-12), "ab[0] vale " + repr(ab[0]) + ".")
+    _t(r, "La fracción baja y al final es ≈ 0.00217", all(ab[i] < ab[i - 1] for i in range(1, 200)) and _cerca(ab[199], 0.002167, 2e-5), "ab[199] vale " + repr(ab[199]) + ".")
+    v = _try(U["ruidar"], 1, 0.25, 2)
+    _t(r, "ruidar(1, 0.25, 2) ≈ 2.23205", _cerca(v, 2.2320508, 1e-6), "Obtuviste " + repr(v) + ".")
+    random.seed(7)
+    a = ab[99]
+    xs = []
+    for _ in range(4000):
+        g = math.sqrt(-2 * math.log(1 - random.random())) * math.cos(2 * math.pi * random.random())
+        xs.append(_try(U["ruidar"], 0.7, a, g))
+    if any(isinstance(x, str) for x in xs):
+        r.append(["ruidar funciona con muchos valores", False, str(xs[0])])
+    else:
+        m = sum(xs) / len(xs)
+        var = sum((x - m) ** 2 for x in xs) / len(xs)
+        _t(r, "La media es raiz(ab)·x0 y la varianza es 1 - ab", _cerca(m, math.sqrt(a) * 0.7, 0.05) and _cerca(var, 1 - a, 0.06), "Media " + str(round(m, 3)) + ", varianza " + str(round(var, 3)) + "; esperadas " + str(round(math.sqrt(a) * 0.7, 3)) + " y " + str(round(1 - a, 3)) + ".")
+    return r`,
+    outro: `Con esto ya conoces la idea detrás de los generadores de imágenes modernos. En el curso completo entrenas la red que quita el ruido.`,
   },
 ];
 
-/* Lecciones previstas: aparecen como «próximamente» hasta que se publiquen. */
+/* Próximamente: aparecen en la barra lateral hasta que se publiquen. */
 const PROXIMAS = [
-  { title: "Un GPT completo", week: "Semana 5", note: "BPE, bloque Transformer, entrenamiento y generación en el navegador" },
-  { title: "VAE y GAN", week: "Semana 6", note: "Espacio latente, ELBO y colapso de modos" },
-  { title: "LoRA y DPO", week: "Semana 8", note: "Adaptar un modelo congelado y alinearlo con preferencias" },
+  { title: "Nivel 2: retropropagación", week: "Python avanzado", note: "Calcular gradientes solo, con una mini versión de autograd" },
+  { title: "Nivel 2: atención y GPT", week: "Python avanzado", note: "Cómo un Transformer lee el contexto" },
+  { title: "Nivel 2: LoRA, DPO y RAG", week: "Python avanzado", note: "Adaptar y alinear modelos; buscar en documentos" },
 ];
-if (typeof module !== "undefined") module.exports = { LESSONS, PROXIMAS };
+if (typeof module !== "undefined") module.exports = { LESSONS, MODULES, PROXIMAS };

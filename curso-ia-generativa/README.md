@@ -38,7 +38,7 @@ Luego lee el [**plan maestro**](guias/00-plan-maestro.md) (20 min) y abre la [Se
 | [`codigo/`](codigo) | 28 archivos Python: scripts y módulos por semana, `comun.py` (datos sintéticos) y `pruebas_rapidas.py` |
 | [`recursos/`](recursos) | [Biblioteca de fuentes por semana](recursos/biblioteca.md) · [Guía de mapeo de redes (4 niveles)](recursos/mapeo-redes.md) · [Chuleta de fórmulas y *shapes*](recursos/chuleta-formulas.md) · [Glosario ES↔EN](recursos/glosario.md) |
 | [`proyecto/`](proyecto) | Proyecto final con 4 rutas, cronograma y rúbrica |
-| [`laboratorio/`](laboratorio) | **Laboratorio Neuronal**: página interactiva con 8 lecciones, retos con comprobación y consola de JavaScript. Abre [`laboratorio-neuronal.html`](laboratorio/laboratorio-neuronal.html) en cualquier navegador; las fuentes están en `laboratorio/src/` y `python3 laboratorio/src/build.py` lo regenera |
+| [`laboratorio/`](laboratorio) | **Laboratorio Neuronal**: Python e IA en una hora, para quien empieza. 10 lecciones de 3 a 8 minutos con Python real, retos con huecos que se comprueban solos y consola. Abre [`laboratorio-neuronal.html`](laboratorio/laboratorio-neuronal.html) en cualquier navegador (funciona sin conexión); ver [su README](laboratorio/README.md) |
 | [`presentacion/`](presentacion) | Presentación de 15 diapositivas: [.pptx](presentacion/Curso-IA-Generativa-8-semanas.pptx) editable y [.pdf](presentacion/Curso-IA-Generativa-8-semanas.pdf), con notas del orador |
 
 ## ✅ Resultados verificados (resumen)
