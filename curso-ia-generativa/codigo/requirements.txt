@@ -1,0 +1,11 @@
+numpy>=1.26
+torch>=2.2
+matplotlib>=3.8
+# opcionales para mapear redes (Semana 3 y 8)
+# torchinfo
+# onnx
+# onnxscript
+# netron
+# torchviz
+# einops
+# bertviz
