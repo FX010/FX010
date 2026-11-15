@@ -38,7 +38,7 @@ Luego lee el [**plan maestro**](guias/00-plan-maestro.md) (20 min) y abre la [Se
 | [`codigo/`](codigo) | 28 archivos Python: scripts y módulos por semana, `comun.py` (datos sintéticos) y `pruebas_rapidas.py` |
 | [`recursos/`](recursos) | [Biblioteca de fuentes por semana](recursos/biblioteca.md) · [Guía de mapeo de redes (4 niveles)](recursos/mapeo-redes.md) · [Chuleta de fórmulas y *shapes*](recursos/chuleta-formulas.md) · [Glosario ES↔EN](recursos/glosario.md) |
 | [`proyecto/`](proyecto) | Proyecto final con 4 rutas, cronograma y rúbrica |
-| [`presentacion/`](presentacion) | Presentación (.pptx) del curso |
+| [`presentacion/`](presentacion) | Presentación de 15 diapositivas: [.pptx](presentacion/Curso-IA-Generativa-8-semanas.pptx) editable y [.pdf](presentacion/Curso-IA-Generativa-8-semanas.pdf), con notas del orador |
 
 ## ✅ Resultados verificados (resumen)
 
