@@ -55,6 +55,20 @@ def rappi_deco(w, h, s):
             f'<circle cx="{w*0.94:.0f}" cy="{h*0.2:.0f}" r="{11*s}" fill="#DE3410"/><circle cx="{w*0.94:.0f}" cy="{h*0.2:.0f}" r="{4.5*s}" fill="#1A1A22"/>')
 
 
+def ia_deco(w, h, s):
+    # red neuronal confinada a la esquina superior derecha (no pisa el título ni las cifras)
+    cols = [(w * 0.76, [0.14, 0.30, 0.46]), (w * 0.85, [0.10, 0.22, 0.34, 0.46]), (w * 0.94, [0.18, 0.38])]
+    pts = [[(x, h * y) for y in ys] for x, ys in cols]
+    edges = ""
+    for a, b in zip(pts, pts[1:]):
+        for (x1, y1) in a:
+            for (x2, y2) in b:
+                edges += f'<line x1="{x1:.0f}" y1="{y1:.0f}" x2="{x2:.0f}" y2="{y2:.0f}"/>'
+    palette = ["#FFB649", "#7C98FF", "#44D7A5"]
+    nodes = "".join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{5.5*s:.1f}" fill="{palette[i]}"/>' for i, col in enumerate(pts) for (x, y) in col)
+    return f'<g stroke="#7C98FF" stroke-opacity=".3" stroke-width="{1.4*s:.1f}">{edges}</g>{nodes}'
+
+
 FAMI = dict(bg="#f2f0e3", bg2="#e1d7c8", ink="#516472", mut="#5c6a74", acc="#89674b", chipbg="#fbfaf3",
             kicker="SENDA ZERO · DLAB ICUBO UDD 2026", title="FAMI", font=ROUND, titlesize=66,
             metrics=[("89%", "utilidad percibida"), ("17.144", "mayores en Quinta Normal"), ("915 MHz", "LoRaWAN, sin SIM")],
@@ -63,6 +77,11 @@ RAPPI = dict(bg="#1A1A22", bg2="#2a1a18", ink="#ffffff", mut="#b9b9c6", acc="#FF
              kicker="DLAB UDD 2026 · DESAFÍO 18 · RAPPI CHILE", title="Rappi Hunters", font=SANS, titlesize=48,
              metrics=[("3", "vistas: app · oficina · gemelo"), ("7", "escenarios simulados"), ("6", "hallazgos clave")],
              tags="JavaScript · HTML/CSS · Simulación de agentes")
+
+IA = dict(bg="#0B1122", bg2="#16224A", ink="#E7ECFB", mut="#9AA6CB", acc="#FFB649", chipbg="#1B2547",
+          kicker="CURSO · EN ESPAÑOL · 2026", title="IA generativa", font=SANS, titlesize=50,
+          metrics=[("8 sem.", "curso completo"), ("28", "scripts verificados"), ("10", "lecciones interactivas")],
+          tags="PyTorch · Transformers · Difusión · LoRA y DPO")
 
 os.makedirs("assets", exist_ok=True)
 os.makedirs("social", exist_ok=True)
@@ -77,6 +96,11 @@ open("assets/card-rappi.svg", "w", encoding="utf8").write(card(
     W, H, RAPPI["bg"], RAPPI["bg2"], RAPPI["ink"], RAPPI["mut"], RAPPI["acc"], RAPPI["chipbg"], RAPPI["kicker"], RAPPI["title"],
     "Prototipo + gemelo digital", ["Repartidores reportan locales nuevos en sus", "tiempos de espera; la Oficina los gestiona."],
     RAPPI["metrics"], RAPPI["tags"], RAPPI["font"], rappi_deco(W, H, 1), "Rappi Hunters · Prototipo y gemelo digital", RAPPI["titlesize"]))
+
+open("assets/card-ia-generativa.svg", "w", encoding="utf8").write(card(
+    W, H, IA["bg"], IA["bg2"], IA["ink"], IA["mut"], IA["acc"], IA["chipbg"], IA["kicker"], IA["title"],
+    "Curso práctico de cero a GPT y difusión", ["De autograd a GPT, VAE, GAN, difusión, LoRA y DPO,", "con código verificado y un laboratorio interactivo."],
+    IA["metrics"], IA["tags"], IA["font"], ia_deco(W, H, 1), "Curso de IA generativa", IA["titlesize"]))
 
 # Vista previa social (1280x640)
 SW, SH = 1280, 640

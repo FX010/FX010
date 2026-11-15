@@ -21,6 +21,7 @@ Este perfil funciona como mi **portafolio**: reúne proyectos donde apliqué opt
 |---|---|---|
 | **Optimización de procesos y operaciones** | Detecto cuellos de botella, capacidad y niveles de servicio (SLA) | Modelación, simulación |
 | **Análisis de datos** | Limpieza, análisis y visualización para tomar decisiones; enseño la materia a nivel universitario | R · RStudio · Excel · Python |
+| **IA generativa y aprendizaje profundo** | Redes neuronales, Transformers, difusión, LoRA y DPO implementados desde cero y verificados con pruebas automáticas | Python · PyTorch |
 | **Modelación y simulación** | Gemelos digitales y simulación basada en agentes, con escenarios y semillas reproducibles | JavaScript |
 | **Evaluación de negocios** | Costeo unitario, punto de equilibrio, validación de precios y dimensionamiento de mercado (TAM/SAM/SOM) | Excel |
 | **Prototipado de soluciones** | Prototipos funcionales y documentación de pruebas | HTML · CSS · JS · Python |
@@ -63,6 +64,28 @@ Este perfil funciona como mi **portafolio**: reúne proyectos donde apliqué opt
 </tr>
 </table>
 
+<table>
+<tr>
+<td width="50%" valign="middle">
+
+<a href="https://github.com/FX010/curso-ia-generativa"><img src="assets/card-ia-generativa.svg" alt="Curso de IA generativa" width="100%"></a>
+
+</td>
+<td width="50%" valign="top">
+
+**Curso de IA generativa**
+
+- **Objetivo:** que cualquiera, con poco Python, pueda construir y entender un GPT, un modelo de difusión y las técnicas para adaptarlos.
+- **Qué incluye:** 8 guías semanales, 28 scripts con 19 pruebas automáticas y un laboratorio que enseña Python e IA en una hora, directo en el navegador.
+- **Honestidad con los datos:** cada cifra sale de una ejecución real y los resultados ambiguos están señalados (por ejemplo, el DPO puro degrada el texto).
+- **Ingeniería aplicada:** autograd, Transformers, VAE y GAN, difusión, LoRA y DPO implementados desde cero, con cotas teóricas para comprobar que el código es correcto.
+
+[Ver curso →](https://github.com/FX010/curso-ia-generativa)
+
+</td>
+</tr>
+</table>
+
 *Además construyo herramientas personales de automatización con Python, bots de Telegram y Google Apps Script (repositorios privados).*
 
 ## Experiencia
@@ -91,6 +114,7 @@ Este perfil funciona como mi **portafolio**: reúne proyectos donde apliqué opt
 ![R](https://img.shields.io/badge/R-26211d?style=flat-square&logo=r&logoColor=e58a4e)
 ![Excel](https://img.shields.io/badge/Excel-26211d?style=flat-square&logo=microsoftexcel&logoColor=e58a4e)
 ![Python](https://img.shields.io/badge/Python-26211d?style=flat-square&logo=python&logoColor=e58a4e)
+![PyTorch](https://img.shields.io/badge/PyTorch-26211d?style=flat-square&logo=pytorch&logoColor=e58a4e)
 ![JavaScript](https://img.shields.io/badge/JavaScript-26211d?style=flat-square&logo=javascript&logoColor=e58a4e)
 ![HTML5](https://img.shields.io/badge/HTML5-26211d?style=flat-square&logo=html5&logoColor=e58a4e)
 ![CSS3](https://img.shields.io/badge/CSS3-26211d?style=flat-square&logo=css3&logoColor=e58a4e)
