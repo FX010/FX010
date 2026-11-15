@@ -80,7 +80,7 @@ Este perfil funciona como mi **portafolio**: reúne proyectos donde apliqué opt
 - **Honestidad con los datos:** cada cifra sale de una ejecución real y los resultados ambiguos están señalados (por ejemplo, el DPO puro degrada el texto).
 - **Ingeniería aplicada:** autograd, Transformers, VAE y GAN, difusión, LoRA y DPO implementados desde cero, con cotas teóricas para comprobar que el código es correcto.
 
-[Ver curso →](https://github.com/FX010/curso-ia-generativa)
+[▶ Laboratorio](https://fx010.github.io/curso-ia-generativa/) · [Repositorio](https://github.com/FX010/curso-ia-generativa) · [Guías](https://github.com/FX010/curso-ia-generativa/blob/main/guias/00-plan-maestro.md)
 
 </td>
 </tr>
