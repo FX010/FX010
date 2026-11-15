@@ -2156,7 +2156,7 @@ if (typeof module !== "undefined") module.exports = { LESSONS, MODULES, PROXIMAS
     const n = Math.max(...spec.series.map((s) => s.y.length));
     const X = (i) => m.l + (pw * i) / Math.max(1, n - 1), Y = (v) => m.t + ph - ((tf(v) - lo) / (hi - lo)) * ph;
     g.font = FONT; g.textBaseline = "middle"; g.fillStyle = T.muted; g.strokeStyle = T.line; g.lineWidth = 1;
-    const ticks = log ? (() => { const out = [], st = Math.max(1, Math.ceil((hi - lo) / 6)); for (let p = lo; p <= hi; p += st) out.push(p); return out; })() : niceTicks(lo, hi, 5);
+    const ticks = log ? (() => { const out = [], st = Math.max(1, Math.ceil((hi - lo) / 6)); for (let p = lo; p <= hi; p += st) out.push(p); return out; })() : niceTicks(lo, hi, Math.max(2, Math.min(5, Math.floor(ph / 32))));
     g.textAlign = "right";
     for (const tk of ticks) { const y = m.t + ph - ((tk - lo) / (hi - lo)) * ph; g.beginPath(); g.moveTo(m.l, y); g.lineTo(m.l + pw, y); g.stroke(); g.fillText(log ? "1e" + tk : fmtN(tk, 3), m.l - 6, y); }
     g.textAlign = "center"; g.textBaseline = "top";
